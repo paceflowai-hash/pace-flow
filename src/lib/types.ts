@@ -115,3 +115,21 @@ export class AuthError extends AppError {
     this.name = 'AuthError';
   }
 }
+
+// ---- Database Types ----
+export interface Database {
+  public: {
+    Tables: {
+      users: {
+        Row: User;
+        Insert: Partial<User>;
+        Update: Partial<User>;
+      };
+      vehicles: {
+        Row: Vehicle;
+        Insert: Omit<Vehicle, 'id' | 'created_at'>;
+        Update: Partial<Omit<Vehicle, 'id' | 'created_at'>>;
+      };
+    };
+  };
+}
