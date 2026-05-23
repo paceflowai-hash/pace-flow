@@ -98,11 +98,12 @@ export default function VehicleRegistrationPage() {
         className="relative z-20 w-full max-w-sm"
       >
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-4">
-            <div className="w-2 h-2 bg-[var(--pace-warning)] animate-pulse" />
-            <span className="text-xs font-medium text-[var(--pace-warning)] tracking-widest uppercase">
-              Kayıt Bekleniyor
-            </span>
+          <div className="flex flex-col items-center justify-center mb-6">
+            <img 
+              src="/logo.png" 
+              alt="PaceFlow Logo" 
+              className="w-auto h-16 object-contain mix-blend-screen opacity-90 drop-shadow-[0_0_15px_rgba(48,209,88,0.3)]" 
+            />
           </div>
           <h1 className="text-3xl font-bold text-white uppercase tracking-[0.1em] mb-2">
             Araç Tanımlama
