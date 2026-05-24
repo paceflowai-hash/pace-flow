@@ -80,12 +80,19 @@ export function MapboxEngine({ position }: MapboxEngineProps) {
         }
       }
 
-      // Create a highly professional, Apple Maps / Tesla style location marker
+      // Create a SpaceX Dragon UI style targeting reticle
       const el = document.createElement('div');
-      el.className = 'relative flex items-center justify-center w-10 h-10';
+      el.className = 'relative flex items-center justify-center w-12 h-12';
       el.innerHTML = `
-        <div class="absolute inset-0 bg-[#0A84FF] rounded-full opacity-20 animate-ping" style="animation-duration: 3s;"></div>
-        <div class="relative w-4 h-4 bg-[#0A84FF] rounded-full border-[2.5px] border-white shadow-[0_2px_10px_rgba(0,0,0,0.5)]"></div>
+        <!-- Expanding radar ring (sharp, no blur) -->
+        <div class="absolute inset-0 border border-white/30 rounded-full animate-ping" style="animation-duration: 4s; animation-timing-function: cubic-bezier(0, 0, 0.2, 1);"></div>
+        <!-- Static targeting ring -->
+        <div class="absolute w-6 h-6 border-[1.5px] border-white/80 rounded-full"></div>
+        <!-- Crosshairs -->
+        <div class="absolute w-8 h-[1px] bg-white/50"></div>
+        <div class="absolute h-8 w-[1px] bg-white/50"></div>
+        <!-- Core indicator -->
+        <div class="relative w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,1)]"></div>
       `;
       
       marker.current = new mapboxgl.Marker({ element: el })
