@@ -59,8 +59,8 @@ export default function DrivePage() {
   const currentSpeed = position?.speed_kmh ?? 0;
   const paceStatus = getPaceStatus(currentSpeed, targetSpeed);
   
-  // Mock traffic density based on speed (Faz 3 UI simulation)
-  const trafficDensity = Math.max(10, Math.min(95, 100 - (currentSpeed * 0.8)));
+  // Real-time Traffic Density from Mapbox Spatial Calculation
+  const [trafficDensity, setTrafficDensity] = useState(0);
 
   // ── Reverse Geocoding (Sokak İsmi) ──
   const [currentStreet, setCurrentStreet] = useState<string>('Konum Aranıyor...');
@@ -197,7 +197,10 @@ export default function DrivePage() {
     <main className="relative flex flex-col items-center justify-center min-h-screen overflow-hidden select-none">
       
       {/* 3D Mapbox Traffic Engine */}
-      <MapboxEngine position={position} />
+      <MapboxEngine 
+        position={position} 
+        onTrafficDensityChange={setTrafficDensity}
+      />
 
       {/* Breathing Glow Overlay */}
       {paceStatus !== 'idle' && (

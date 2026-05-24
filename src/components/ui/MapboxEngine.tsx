@@ -10,9 +10,23 @@ mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
 interface MapboxEngineProps {
   position: GeoPosition | null;
+  onTrafficDensityChange?: (density: number) => void;
 }
 
-export function MapboxEngine({ position }: MapboxEngineProps) {
+// ── Haversine Distance Calculation ──
+function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2); 
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  return R * c;
+}
+
+export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const marker = useRef<mapboxgl.Marker | null>(null);
@@ -126,6 +140,73 @@ export function MapboxEngine({ position }: MapboxEngineProps) {
     // Update marker position
     marker.current?.setLngLat([position.longitude, position.latitude]);
   }, [position, mapLoaded]);
+
+  // ── Traffic Density Real-time Spatial Calculation ──
+  useEffect(() => {
+    if (!map.current || !mapLoaded || !position || !onTrafficDensityChange) return;
+
+    const interval = setInterval(() => {
+      try {
+        // Only query features currently rendered on screen (saves API calls, purely client-side)
+        const features = map.current?.queryRenderedFeatures({ layers: ['traffic-lines'] });
+        if (!features || features.length === 0) {
+          onTrafficDensityChange(0);
+          return;
+        }
+
+        let totalWeight = 0;
+        let weightedCongestion = 0;
+
+        features.forEach((f) => {
+          const congestion = f.properties?.congestion;
+          if (!congestion) return;
+
+          // Mapbox Traffic v1 congestion values
+          let congestionValue = 0;
+          if (congestion === 'low') congestionValue = 10; // green
+          else if (congestion === 'moderate') congestionValue = 45; // yellow/orange
+          else if (congestion === 'heavy') congestionValue = 85; // red
+          else if (congestion === 'severe') congestionValue = 100; // dark red
+
+          // Extract coordinates to approximate distance to the feature
+          const geom: any = f.geometry;
+          const coords = geom.coordinates;
+          if (!coords || !coords[0]) return;
+          
+          let lng, lat;
+          if (typeof coords[0][0] === 'number') {
+            [lng, lat] = coords[0]; // LineString
+          } else if (typeof coords[0][0][0] === 'number') {
+            [lng, lat] = coords[0][0]; // MultiLineString
+          } else {
+            return;
+          }
+
+          // Distance from user to this specific road segment
+          const distKm = getDistanceFromLatLonInKm(position.latitude, position.longitude, lat, lng);
+          
+          // Optimization: Ignore roads further than 3km
+          if (distKm > 3) return;
+          
+          // Spatial Weighting: Inverse Square Law
+          // Closer roads (0.1km) have massive weight (e.g., 100)
+          // Further roads (3km) have very small weight (e.g., ~0.1)
+          const weight = 1 / (1 + Math.pow(distKm * 3, 2));
+
+          weightedCongestion += congestionValue * weight;
+          totalWeight += weight;
+        });
+
+        const finalDensity = totalWeight > 0 ? Math.round(weightedCongestion / totalWeight) : 0;
+        onTrafficDensityChange(finalDensity);
+
+      } catch (err) {
+        console.error("Traffic calculation error:", err);
+      }
+    }, 2000); // Recalculate every 2 seconds for butter-smooth UI
+
+    return () => clearInterval(interval);
+  }, [position?.latitude, position?.longitude, mapLoaded, onTrafficDensityChange]);
 
   return (
     <div className="absolute inset-0 z-0 bg-black">
