@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGeolocation, useWakeLock, useDeviceMotion } from '@/lib/hooks';
-import { TeslaCanvasEngine } from '@/components/ui/TeslaCanvasEngine';
+import { MapboxEngine } from '@/components/ui/MapboxEngine';
 
 // ─── Pace Status Logic ────────────────────────────────
 type PaceStatus = 'idle' | 'synced' | 'warning' | 'danger';
@@ -132,7 +132,7 @@ export default function DrivePage() {
   if (permission === 'denied') {
     return (
       <main className="relative flex flex-col items-center justify-center min-h-screen px-6 text-center">
-        <TeslaCanvasEngine />
+        <MapboxEngine position={null} />
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-10" />
         <div className="relative z-20 max-w-sm">
           <div className="w-16 h-16 rounded-full border-2 border-[var(--pace-danger)] flex items-center justify-center mx-auto mb-6">
@@ -155,8 +155,8 @@ export default function DrivePage() {
   return (
     <main className="relative flex flex-col items-center justify-center min-h-screen overflow-hidden select-none">
       
-      {/* 3D Background Engine */}
-      <TeslaCanvasEngine />
+      {/* 3D Mapbox Traffic Engine */}
+      <MapboxEngine position={position} />
 
       {/* Breathing Glow Overlay */}
       {paceStatus !== 'idle' && (

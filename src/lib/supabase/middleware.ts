@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-const PROTECTED_ROUTES = ['/drive', '/profile', '/onboarding'];
+const PROTECTED_ROUTES = ['/profile'];  // Auth deferred — only profile requires login
 const AUTH_ROUTES = ['/login', '/register'];
 
 export async function updateSession(request: NextRequest) {
