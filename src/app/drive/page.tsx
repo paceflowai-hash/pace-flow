@@ -58,6 +58,9 @@ export default function DrivePage() {
 
   const currentSpeed = position?.speed_kmh ?? 0;
   const paceStatus = getPaceStatus(currentSpeed, targetSpeed);
+  
+  // Mock traffic density based on speed (Faz 3 UI simulation)
+  const trafficDensity = Math.max(10, Math.min(95, 100 - (currentSpeed * 0.8)));
 
   // ── Start Drive Session ──
   useEffect(() => {
@@ -270,18 +273,38 @@ export default function DrivePage() {
       </div>
 
       {/* Bottom Info Bar */}
-      <div className="absolute bottom-0 left-0 right-0 z-30 px-6 py-6">
+      <div className="absolute bottom-0 left-0 right-0 z-30 px-6 py-8 flex flex-col items-center">
+        
+        {/* Traffic Density Bar (Apple Style) */}
+        <div className="w-full max-w-[240px] mb-5">
+          <div className="flex justify-between items-center mb-1.5 px-1">
+            <span className="text-[9px] text-white/40 uppercase tracking-[0.2em]">Trafik Yoğunluğu</span>
+            <span className="text-[10px] text-white/70 font-bold tabular-nums">{Math.round(trafficDensity)}%</span>
+          </div>
+          <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
+            <motion.div 
+              className="h-full rounded-full"
+              style={{ 
+                backgroundColor: trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158',
+                boxShadow: `0 0 10px ${trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158'}`
+              }}
+              animate={{ width: `${trafficDensity}%` }}
+              transition={{ duration: 1.5, ease: 'easeOut' }}
+            />
+          </div>
+        </div>
+
         {/* Network Count */}
         <div className="flex items-center justify-center gap-2 mb-3">
-          <div className="w-1.5 h-1.5 rounded-full bg-[var(--text-tertiary)]" />
-          <span className="text-xs text-[var(--text-tertiary)] tracking-wider">
-            Yakınındaki Ağda: <span className="text-[var(--text-secondary)] font-medium">{nearbyCount}</span> Araç
+          <div className="w-1.5 h-1.5 rounded-full bg-white/30" />
+          <span className="text-[11px] text-white/40 tracking-wider">
+            Ağdaki Araç: <span className="text-white/80 font-medium">{nearbyCount}</span>
           </span>
         </div>
 
         {/* GPS Status */}
         {error && (
-          <div className="text-center">
+          <div className="text-center mb-2">
             <span className="text-[10px] text-[var(--pace-warning)] uppercase tracking-widest">
               📡 {error}
             </span>
@@ -290,12 +313,12 @@ export default function DrivePage() {
 
         {/* Accuracy Indicator */}
         {position && (
-          <div className="flex items-center justify-center gap-4 mt-2">
-            <span className="text-[10px] text-[var(--text-tertiary)]">
-              GPS: ±{Math.round(position.accuracy)}m
+          <div className="flex items-center justify-center gap-4">
+            <span className="text-[9px] text-white/30 uppercase tracking-widest">
+              GPS ±{Math.round(position.accuracy)}m
             </span>
-            <span className="text-[10px] text-[var(--text-tertiary)]">
-              {position.heading > 0 ? `${Math.round(position.heading)}°` : '—'}
+            <span className="text-[9px] text-white/30 uppercase tracking-widest">
+              {position.heading > 0 ? `${Math.round(position.heading)}°` : 'YÖN BEKLENİYOR'}
             </span>
           </div>
         )}
