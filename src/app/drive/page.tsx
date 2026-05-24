@@ -55,6 +55,7 @@ export default function DrivePage() {
   const [nearbyCount] = useState(0);
   const [pacingPoints, setPacingPoints] = useState(0);
   const [isSessionActive, setIsSessionActive] = useState(false);
+  const [serverShock, setServerShock] = useState(0);
 
   const currentSpeed = position?.speed_kmh ?? 0;
   const paceStatus = getPaceStatus(currentSpeed, targetSpeed);
@@ -165,14 +166,61 @@ export default function DrivePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── Auto-set target speed based on current speed (temporary Faz 3 logic)
-  // In Faz 4, this will come from the Python FastAPI brain
+  const wsRef = useRef<WebSocket | null>(null);
+
+  // ── Connect to FastAPI WebSocket (Faz 4: The Brain) ──
   useEffect(() => {
-    if (currentSpeed > 10 && targetSpeed === 0) {
-      // Set an initial target based on current speed
-      setTargetSpeed(Math.round(currentSpeed));
-    }
-  }, [currentSpeed, targetSpeed]);
+    if (!isSessionActive) return;
+
+    // TODO: Change localhost to actual backend URL in production
+    const ws = new WebSocket('ws://localhost:8000/ws/telemetry');
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      console.log('Connected to PaceFlow Backend (KWT Engine)');
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.target_speed !== undefined) {
+          setTargetSpeed(data.target_speed);
+        }
+        if (data.shockwave_alert) {
+          setServerShock(Date.now());
+        }
+      } catch (e) {
+        console.error('Error parsing WS message', e);
+      }
+    };
+
+    ws.onclose = () => {
+      console.log('Disconnected from PaceFlow Backend');
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, [isSessionActive]);
+
+  // ── Send Telemetry Loop (1Hz) ──
+  useEffect(() => {
+    if (!isSessionActive || !wsRef.current) return;
+    
+    const interval = setInterval(() => {
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify({
+          latitude: position?.latitude || 0,
+          longitude: position?.longitude || 0,
+          speed: currentSpeed,
+          heading: position?.heading || 0,
+          local_density: trafficDensity // We send the UI density to backend to simulate KWT spatial mapping
+        }));
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isSessionActive, position, currentSpeed, trafficDensity]);
 
   // ── Anti-Panic Smoothing: Animate display speed toward target ──
   useEffect(() => {
@@ -209,12 +257,12 @@ export default function DrivePage() {
   // ── Shock wave alert indicator ──
   const [showShockAlert, setShowShockAlert] = useState(false);
   useEffect(() => {
-    if (lastShock) {
+    if (lastShock || serverShock) {
       setShowShockAlert(true);
       const timer = setTimeout(() => setShowShockAlert(false), 3000);
       return () => clearTimeout(timer);
     }
-  }, [lastShock]);
+  }, [lastShock, serverShock]);
 
   // ── Permission denied state ──
   if (permission === 'denied') {
