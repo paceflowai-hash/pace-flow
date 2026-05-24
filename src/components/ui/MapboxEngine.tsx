@@ -87,9 +87,9 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
                   // Çerçeveleri gizle (çift çizgi karmaşasını önler)
                   map.current.setPaintProperty(layer.id, 'line-opacity', 0);
                 } else {
-                  // Sadece yolun içini (tek çizgi) mavi yap
-                  map.current.setPaintProperty(layer.id, 'line-color', '#0A84FF'); // Neon mavi
-                  map.current.setPaintProperty(layer.id, 'line-opacity', 0.6); // Biraz daha belirgin
+                  // Sadece yolun içini (tek çizgi) beyaz yap
+                  map.current.setPaintProperty(layer.id, 'line-color', '#FFFFFF'); // Saf beyaz
+                  map.current.setPaintProperty(layer.id, 'line-opacity', 0.4); // Beyaz çok parlak olacağı için opacity'yi kıstık
                   try {
                     // Çizgiyi biraz daha kalınlaştır (kullanıcı talebi)
                     map.current.setPaintProperty(layer.id, 'line-width', 2.5); 
