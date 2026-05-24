@@ -214,7 +214,9 @@ export default function DrivePage() {
           longitude: position?.longitude || 0,
           speed: currentSpeed,
           heading: position?.heading || 0,
-          local_density: trafficDensity // We send the UI density to backend to simulate KWT spatial mapping
+          local_density: trafficDensity,
+          district_density: districtDensity,
+          city_density: cityDensity
         }));
       }
     }, 1000);
