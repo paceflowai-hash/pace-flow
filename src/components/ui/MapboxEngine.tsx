@@ -193,6 +193,46 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
             // map might be unmounting
           }
           
+          // --- Ambient Traffic Reflection (Left/Right) ---
+          try {
+            const leftStop = document.getElementById('leftConeStop');
+            const rightStop = document.getElementById('rightConeStop');
+            const m = marker.current?.getLngLat();
+            
+            if (m && leftStop && rightStop && map.current) {
+              const pt = map.current.project(m);
+              
+              // Map rotates with vehicle, so 'Left' is always screen -x, and 'Right' is +x.
+              // We check slightly ahead (-y) and to the sides.
+              const L_x = pt.x - 60; const L_y = pt.y - 60;
+              const R_x = pt.x + 60; const R_y = pt.y - 60;
+              
+              const leftBbox: [mapboxgl.PointLike, mapboxgl.PointLike] = [[L_x - 15, L_y - 15], [L_x + 15, L_y + 15]];
+              const rightBbox: [mapboxgl.PointLike, mapboxgl.PointLike] = [[R_x - 15, R_y - 15], [R_x + 15, R_y + 15]];
+              
+              const getTrafficColor = (bbox: [mapboxgl.PointLike, mapboxgl.PointLike]) => {
+                const features = map.current!.queryRenderedFeatures(bbox, { layers: ['traffic-glow', 'traffic-lines'] });
+                let maxLevel = 0;
+                let color = '#0A84FF'; // Default blue (clear)
+                for (const f of features) {
+                  const congestion = f.properties?.congestion;
+                  if (congestion === 'severe' && maxLevel < 4) { maxLevel = 4; color = '#BF5AF2'; }
+                  else if (congestion === 'heavy' && maxLevel < 3) { maxLevel = 3; color = '#FF453A'; }
+                  else if (congestion === 'moderate' && maxLevel < 2) { maxLevel = 2; color = '#FF9F0A'; }
+                }
+                return color;
+              };
+              
+              const leftColor = getTrafficColor(leftBbox);
+              const rightColor = getTrafficColor(rightBbox);
+              
+              leftStop.setAttribute('stop-color', leftColor);
+              rightStop.setAttribute('stop-color', rightColor);
+            }
+          } catch (e) {
+            // Ignore spatial query errors
+          }
+
           animationFrameId.current = requestAnimationFrame(animateGlow);
         };
         animationFrameId.current = requestAnimationFrame(animateGlow);
@@ -200,22 +240,29 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
 
       // Create a highly professional, Apple Maps / Tesla style location marker
       const el = document.createElement('div');
-      el.className = 'relative flex items-center justify-center w-12 h-12';
+      el.className = 'relative flex items-center justify-center w-24 h-24';
       el.innerHTML = `
-        <div class="absolute inset-0 bg-[#0A84FF] rounded-full opacity-20 animate-ping" style="animation-duration: 3s;"></div>
+        <div class="absolute inset-0 bg-[#0A84FF] rounded-full opacity-10 animate-ping" style="animation-duration: 3s;"></div>
         
-        <!-- Directional Cone -->
-        <svg class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[90%] pointer-events-none" width="40" height="40" viewBox="0 0 40 40">
+        <!-- Directional Cone (Split Left/Right for ambient reflection) -->
+        <svg class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[85%] pointer-events-none" width="100" height="100" viewBox="0 0 100 100">
           <defs>
-            <linearGradient id="coneGradient" x1="0%" y1="100%" x2="0%" y2="0%">
-              <stop offset="0%" stop-color="#0A84FF" stop-opacity="0.8" />
+            <linearGradient id="leftConeGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+              <stop id="leftConeStop" offset="0%" stop-color="#0A84FF" stop-opacity="0.8" />
+              <stop offset="100%" stop-color="#0A84FF" stop-opacity="0" />
+            </linearGradient>
+            <linearGradient id="rightConeGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+              <stop id="rightConeStop" offset="0%" stop-color="#0A84FF" stop-opacity="0.8" />
               <stop offset="100%" stop-color="#0A84FF" stop-opacity="0" />
             </linearGradient>
           </defs>
-          <polygon points="20,40 5,0 35,0" fill="url(#coneGradient)" />
+          <!-- Left Cone Half -->
+          <polygon points="50,100 15,0 50,0" fill="url(#leftConeGrad)" />
+          <!-- Right Cone Half -->
+          <polygon points="50,100 50,0 85,0" fill="url(#rightConeGrad)" />
         </svg>
 
-        <div class="relative z-10 w-4 h-4 bg-[#0A84FF] rounded-full border-[2.5px] border-white shadow-[0_2px_10px_rgba(0,0,0,0.5)]"></div>
+        <div class="relative z-10 w-5 h-5 bg-[#0A84FF] rounded-full border-[3px] border-white shadow-[0_2px_15px_rgba(0,0,0,0.8)]"></div>
       `;
       
       marker.current = new mapboxgl.Marker({ 
