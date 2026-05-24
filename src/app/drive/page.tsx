@@ -318,9 +318,9 @@ export default function DrivePage() {
       )}
 
       {/* Top Bar */}
-      <div className="absolute top-6 left-0 right-0 z-50 flex items-center justify-between px-6">
+      <div className="absolute top-12 left-0 right-0 z-50 flex items-start justify-between px-6 pt-safe-top">
         {/* Status */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 mt-1.5">
           <div 
             className="w-2.5 h-2.5 rounded-full animate-pulse"
             style={{ backgroundColor: getStatusDotColor(paceStatus) }}
