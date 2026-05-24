@@ -207,27 +207,18 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
             // map might be unmounting
           }
           
-          // --- Ambient Traffic Reflection (Left/Right) ---
+          // --- Ambient Traffic Reflection (Single Forward Cone) ---
           try {
-            const leftStop = document.getElementById('leftConeStop');
-            const rightStop = document.getElementById('rightConeStop');
+            const forwardStop = document.getElementById('forwardConeStop');
             const m = marker.current?.getLngLat();
             
-            if (m && leftStop && rightStop && map.current) {
+            if (m && forwardStop && map.current) {
               const pt = map.current.project(m);
               
-              // İlerideki trafiği (ekranın üst kısmına doğru geniş bir alan) taramak için
+              // İlerideki trafiği taramak için tek bir geniş ön kutu (forward bounding box)
               // pt.y aracın konumu. 0 ise ekranın en üstü (ilerisi).
-              // Sol ilerisi için: Aracın solundan 400px sola, ve ekranın en üstüne kadar olan kutu.
-              // 1KM tarama alanı (Zoom 15 seviyesinde ortalama 150-200 piksel)
-              // Sol Koni için: Aracın tam sol-ön çaprazı (100px sola, 200px ileriye kadar dar bir tünel)
-              const leftBbox: [mapboxgl.PointLike, mapboxgl.PointLike] = [
-                [pt.x - 100, Math.max(0, pt.y - 200)], 
-                [pt.x - 5, pt.y]
-              ];
-              // Sağ Koni için: Aracın tam sağ-ön çaprazı (100px sağa, 200px ileriye kadar dar bir tünel)
-              const rightBbox: [mapboxgl.PointLike, mapboxgl.PointLike] = [
-                [pt.x + 5, Math.max(0, pt.y - 200)], 
+              const forwardBbox: [mapboxgl.PointLike, mapboxgl.PointLike] = [
+                [pt.x - 100, Math.max(0, pt.y - 300)], 
                 [pt.x + 100, pt.y]
               ];
               
@@ -235,10 +226,9 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
                 const features = map.current!.queryRenderedFeatures(bbox, { layers: ['traffic-glow', 'traffic-lines'] });
                 let maxLevel = 0;
                 let color = '#FFFFFF'; // Default white (clear)
-                let opacity = '0.15'; // Çok hafif beyaz ışık
+                let opacity = '0.3'; // Standart daha belirgin beyaz koni
                 for (const f of features) {
                   const congestion = f.properties?.congestion;
-                  // Opacity değerlerini yüksek tutuyoruz ki yoldaki trafik rengiyle BİREBİR aynı görünsün
                   if (congestion === 'severe' && maxLevel < 4) { maxLevel = 4; color = '#BF5AF2'; opacity = '0.8'; }
                   else if (congestion === 'heavy' && maxLevel < 3) { maxLevel = 3; color = '#FF453A'; opacity = '0.8'; }
                   else if (congestion === 'moderate' && maxLevel < 2) { maxLevel = 2; color = '#FF9F0A'; opacity = '0.8'; }
@@ -246,18 +236,12 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
                 return { color, opacity };
               };
               
-              const leftState = getTrafficState(leftBbox);
-              const rightState = getTrafficState(rightBbox);
+              const forwardState = getTrafficState(forwardBbox);
               
-              leftStop.setAttribute('stop-color', leftState.color);
-              leftStop.setAttribute('stop-opacity', leftState.opacity);
-              const leftFade = document.getElementById('leftConeFade');
-              if (leftFade) leftFade.setAttribute('stop-color', leftState.color);
-
-              rightStop.setAttribute('stop-color', rightState.color);
-              rightStop.setAttribute('stop-opacity', rightState.opacity);
-              const rightFade = document.getElementById('rightConeFade');
-              if (rightFade) rightFade.setAttribute('stop-color', rightState.color);
+              forwardStop.setAttribute('stop-color', forwardState.color);
+              forwardStop.setAttribute('stop-opacity', forwardState.opacity);
+              const forwardFade = document.getElementById('forwardConeFade');
+              if (forwardFade) forwardFade.setAttribute('stop-color', forwardState.color);
             }
           } catch (e) {
             // Ignore spatial query errors
@@ -270,29 +254,23 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
 
       // Create a highly professional, Apple Maps / Tesla style location marker
       const el = document.createElement('div');
-      el.className = 'relative flex items-center justify-center w-24 h-24';
+      el.className = 'relative flex items-center justify-center w-20 h-20'; // Biraz daha küçültüldü
       el.innerHTML = `
         <div class="absolute inset-0 bg-[#FFFFFF] rounded-full opacity-10 animate-ping" style="animation-duration: 3s;"></div>
         
-        <!-- Directional Cone (Split Left/Right for ambient reflection) -->
-        <svg class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[85%] pointer-events-none" width="100" height="100" viewBox="0 0 100 100">
+        <!-- Directional Cone (Single Professional Forward Cone) -->
+        <svg class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[85%] pointer-events-none" width="70" height="70" viewBox="0 0 100 100">
           <defs>
-            <linearGradient id="leftConeGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-              <stop id="leftConeStop" offset="0%" stop-color="#FFFFFF" stop-opacity="0.2" />
-              <stop id="leftConeFade" offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
-            </linearGradient>
-            <linearGradient id="rightConeGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-              <stop id="rightConeStop" offset="0%" stop-color="#FFFFFF" stop-opacity="0.2" />
-              <stop id="rightConeFade" offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+            <linearGradient id="forwardConeGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+              <stop id="forwardConeStop" offset="0%" stop-color="#FFFFFF" stop-opacity="0.3" />
+              <stop id="forwardConeFade" offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
             </linearGradient>
           </defs>
-          <!-- Left Cone Half -->
-          <polygon points="50,100 15,0 50,0" fill="url(#leftConeGrad)" />
-          <!-- Right Cone Half -->
-          <polygon points="50,100 50,0 85,0" fill="url(#rightConeGrad)" />
+          <!-- Single Solid Cone -->
+          <polygon points="50,100 25,0 75,0" fill="url(#forwardConeGrad)" />
         </svg>
 
-        <div class="relative z-10 w-5 h-5 bg-[#FFFFFF] rounded-full border-[3px] border-[#0A84FF] shadow-[0_2px_15px_rgba(0,0,0,0.8)]"></div>
+        <div class="relative z-10 w-4 h-4 bg-[#FFFFFF] rounded-full border-[3px] border-[#0A84FF] shadow-[0_2px_15px_rgba(0,0,0,0.8)]"></div>
       `;
       
       marker.current = new mapboxgl.Marker({ 
