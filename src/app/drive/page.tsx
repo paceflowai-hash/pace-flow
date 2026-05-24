@@ -100,6 +100,15 @@ export default function DrivePage() {
   // Average Area Speed (0% congestion = 60 km/h, 100% congestion = 5 km/h)
   const averageAreaSpeed = Math.round(60 - (trafficDensity / 100) * 55);
 
+  const [currentTime, setCurrentTime] = useState<string>('--:--');
+  useEffect(() => {
+    setCurrentTime(new Date().getHours().toString().padStart(2, '0') + ':00');
+    const interval = setInterval(() => {
+      setCurrentTime(new Date().getHours().toString().padStart(2, '0') + ':00');
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   // ── Reverse Geocoding (Sokak İsmi) ──
   const [currentStreet, setCurrentStreet] = useState<string>('Konum Aranıyor...');
   const lastGeocodeRef = useRef<{lat: number, lng: number, time: number} | null>(null);
@@ -357,9 +366,12 @@ export default function DrivePage() {
       </div>
 
       {/* Delay Cluster (Right Vertical Stack) */}
-      <div className="absolute right-6 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center pointer-events-none gap-4 bg-black/40 backdrop-blur-md border border-white/5 rounded-full px-3 py-6 shadow-2xl">
+      <div className="absolute right-6 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center gap-3">
         
-        {/* Local Delay */}
+        {/* Delay Bars Container */}
+        <div className="flex flex-col items-center pointer-events-none gap-4 bg-black/40 backdrop-blur-md border border-white/5 rounded-full px-3 py-6 shadow-2xl">
+          
+          {/* Local Delay */}
         <div className="flex flex-col items-center">
           <span className="text-[10px] text-white/70 font-bold tabular-nums mb-2">+{delayMinutes}dk</span>
           <div className="w-1.5 h-28 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-3">
@@ -403,6 +415,24 @@ export default function DrivePage() {
           </div>
           <span className="text-[7px] text-white/30 uppercase tracking-[0.2em] [writing-mode:vertical-lr] rotate-180">İl</span>
         </div>
+        
+        </div> {/* End of Delay Bars */}
+
+        {/* Hourly Trend (Separate Small Pill) */}
+        <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-md border border-white/10 rounded-full px-2.5 py-1.5 shadow-2xl pointer-events-none">
+          <div className="flex items-end gap-0.5 h-3">
+             <div className="w-0.5 h-1.5 bg-white/30 rounded-full" />
+             <div 
+               className="w-1 h-3 rounded-full animate-pulse" 
+               style={{ backgroundColor: trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158' }}
+             />
+             <div className="w-0.5 h-2 bg-white/30 rounded-full" />
+          </div>
+          <span className="text-[8px] text-white/80 uppercase tracking-[0.2em] font-medium">
+            SAAT: <span className="font-bold text-white">{currentTime}</span>
+          </span>
+        </div>
+
       </div>
 
       {/* Shock Wave Alert Banner */}
