@@ -272,20 +272,6 @@ export default function DrivePage() {
           </span>
         </div>
 
-        {/* Average Area Speed (Center Pill) */}
-        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3 bg-black/50 backdrop-blur-md border border-white/10 rounded-full px-5 py-2.5 shadow-2xl">
-          <div 
-            className="w-1.5 h-1.5 rounded-full animate-pulse" 
-            style={{ 
-              backgroundColor: trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158',
-              boxShadow: `0 0 8px ${trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158'}`
-            }}
-          />
-          <span className="text-[11px] text-white/80 uppercase tracking-[0.25em] font-medium flex items-baseline">
-            Çevre Hızı: <span className="text-sm font-bold text-white ml-1.5">{averageAreaSpeed} KM/S</span>
-          </span>
-        </div>
-
         {/* PacingPoints */}
         <div className="flex items-center gap-1.5">
           <svg className="w-4 h-4 text-[var(--pace-synced)]" fill="currentColor" viewBox="0 0 20 20">
@@ -298,9 +284,12 @@ export default function DrivePage() {
       </div>
 
       {/* Traffic Density Cluster (Left Vertical) */}
-      <div className="absolute left-6 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center pointer-events-none gap-4 bg-black/40 backdrop-blur-md border border-white/5 rounded-full px-3 py-6 shadow-2xl">
+      <div className="absolute left-6 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center gap-3">
         
-        {/* Local Area */}
+        {/* Bars Container */}
+        <div className="flex flex-col items-center pointer-events-none gap-4 bg-black/40 backdrop-blur-md border border-white/5 rounded-full px-3 py-6 shadow-2xl">
+          
+          {/* Local Area */}
         <div className="flex flex-col items-center">
           <span className="text-[10px] text-white/70 font-bold tabular-nums mb-2">
             {Math.round(trafficDensity)}%
@@ -347,6 +336,22 @@ export default function DrivePage() {
             />
           </div>
           <span className="text-[7px] text-white/30 uppercase tracking-[0.2em] [writing-mode:vertical-lr] rotate-180">İl</span>
+        </div>
+        
+        </div> {/* End of Bars Container */}
+
+        {/* Average Area Speed (Separate Small Pill) */}
+        <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-md border border-white/10 rounded-full px-2.5 py-1.5 shadow-2xl pointer-events-none">
+          <div 
+            className="w-1.5 h-1.5 rounded-full animate-pulse" 
+            style={{ 
+              backgroundColor: trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158',
+              boxShadow: `0 0 6px ${trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158'}`
+            }}
+          />
+          <span className="text-[8px] text-white/80 uppercase tracking-[0.2em] font-medium">
+            <span className="font-bold text-white">{averageAreaSpeed}</span> KM/S
+          </span>
         </div>
 
       </div>
