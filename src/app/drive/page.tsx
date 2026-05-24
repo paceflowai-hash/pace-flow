@@ -6,39 +6,41 @@ import { useGeolocation, useWakeLock, useDeviceMotion } from '@/lib/hooks';
 import { MapboxEngine } from '@/components/ui/MapboxEngine';
 
 // ─── Pace Status Logic ────────────────────────────────
-type PaceStatus = 'idle' | 'synced' | 'warning' | 'danger';
+type PaceStatus = 'idle' | 'speed_up' | 'synced' | 'slow_down';
 
 function getPaceStatus(current: number, target: number): PaceStatus {
   if (target === 0) return 'idle';
-  const diff = Math.abs(current - target) / target;
-  if (diff <= 0.05) return 'synced';
-  if (diff <= 0.15) return 'warning';
-  return 'danger';
+  
+  const ratio = current / target;
+  
+  if (ratio >= 0.95 && ratio <= 1.05) return 'synced'; // +/- 5% tolerance
+  if (ratio > 1.05) return 'slow_down'; // Going too fast
+  return 'speed_up'; // Going too slow
 }
 
 function getGlowColor(status: PaceStatus): string {
   switch (status) {
-    case 'synced': return 'transparent'; // Yeşili tamamen kaldırdık, ekran siyah kalacak
-    case 'warning': return 'rgba(255, 159, 10, 0.4)';
-    case 'danger': return 'rgba(255, 69, 58, 0.4)';
+    case 'speed_up': return 'rgba(48, 209, 88, 0.4)'; // Yeşil (Hızlan)
+    case 'synced': return 'transparent'; // Hedefteyiz, sıfır ışık kirliliği
+    case 'slow_down': return 'rgba(255, 69, 58, 0.4)'; // Kırmızı (Yavaşla)
     default: return 'transparent';
   }
 }
 
 function getGlowDuration(status: PaceStatus): number {
   switch (status) {
+    case 'speed_up': return 2; // Daha hızlı nabız (Teşvik edici)
     case 'synced': return 4;
-    case 'warning': return 2;
-    case 'danger': return 1;
+    case 'slow_down': return 0.5; // Çok hızlı yanıp sönme (Aciliyet)
     default: return 0;
   }
 }
 
 function getStatusDotColor(status: PaceStatus): string {
   switch (status) {
-    case 'synced': return 'var(--pace-synced)';
-    case 'warning': return 'var(--pace-warning)';
-    case 'danger': return 'var(--pace-danger)';
+    case 'speed_up': return '#30D158'; // Yeşil nokta
+    case 'synced': return 'transparent'; // Noktaya gerek yok
+    case 'slow_down': return '#FF453A'; // Kırmızı nokta
     default: return 'var(--text-tertiary)';
   }
 }
