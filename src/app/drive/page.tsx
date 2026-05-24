@@ -173,7 +173,7 @@ export default function DrivePage() {
     if (!isSessionActive) return;
 
     // TODO: Change localhost to actual backend URL in production
-    const ws = new WebSocket('ws://localhost:8000/ws/telemetry');
+    const ws = new WebSocket('ws://localhost:8001/ws/telemetry');
     wsRef.current = ws;
 
     ws.onopen = () => {
