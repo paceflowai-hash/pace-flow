@@ -31,16 +31,14 @@ export function EconomyDashboard({ paceStatus, isDriving }: EconomyDashboardProp
     return () => clearInterval(interval);
   }, [paceStatus, isDriving]);
 
-  if (!isMounted) return null;
-
   return (
     <motion.div 
-      initial={{ opacity: 0, y: -20 }}
+      initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="absolute top-6 right-6 z-50 flex items-center gap-4 pointer-events-none"
+      className="flex items-center gap-3 pointer-events-none"
     >
       {/* Fuel Saved Widget */}
-      <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md border border-emerald-500/20 px-3 py-1.5 rounded-full shadow-lg">
+      <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-md border border-emerald-500/20 px-3 py-1.5 rounded-full shadow-lg">
         <Droplet className="w-3.5 h-3.5 text-emerald-400" />
         <div className="flex items-baseline gap-1">
           <span className="text-white font-bold text-sm tracking-tight">{fuelSavedML.toFixed(1)}</span>
@@ -49,7 +47,7 @@ export function EconomyDashboard({ paceStatus, isDriving }: EconomyDashboardProp
       </div>
 
       {/* Pace Points Widget */}
-      <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md border border-amber-500/20 px-3 py-1.5 rounded-full shadow-lg">
+      <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-md border border-amber-500/20 px-3 py-1.5 rounded-full shadow-lg">
         <Coins className="w-3.5 h-3.5 text-amber-400" />
         <div className="flex items-baseline gap-1">
           <span className="text-white font-bold text-sm tracking-tight">{pacePoints}</span>

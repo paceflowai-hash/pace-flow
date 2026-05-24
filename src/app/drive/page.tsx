@@ -292,6 +292,9 @@ export default function DrivePage() {
       {/* 3D Mapbox Traffic Engine */}
       <MapboxEngine 
         position={position} 
+        targetSpeed={targetSpeed}
+        currentSpeed={currentSpeed}
+        showShockAlert={showShockAlert}
         onTrafficDensityChange={setTrafficDensity}
       />
 
@@ -315,17 +318,20 @@ export default function DrivePage() {
       )}
 
       {/* Top Bar */}
-      <div className="absolute top-6 left-0 right-0 z-30 flex items-center justify-between px-6">
+      <div className="absolute top-6 left-0 right-0 z-50 flex items-center justify-between px-6">
         {/* Status */}
         <div className="flex items-center gap-2">
           <div 
             className="w-2.5 h-2.5 rounded-full animate-pulse"
             style={{ backgroundColor: getStatusDotColor(paceStatus) }}
           />
-          <span className="text-xs font-medium text-[var(--text-secondary)] tracking-widest uppercase">
+          <span className="text-xs font-medium text-[var(--text-secondary)] tracking-widest uppercase shadow-md">
             Pace/Flow
           </span>
         </div>
+
+        {/* Economy Dashboard (Right Side) */}
+        <EconomyDashboard paceStatus={paceStatus} isDriving={isSessionActive && currentSpeed > 5} />
       </div>
 
       {/* Traffic Density Cluster (Left Vertical) */}
