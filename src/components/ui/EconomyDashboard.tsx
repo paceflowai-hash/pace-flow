@@ -35,33 +35,25 @@ export function EconomyDashboard({ paceStatus, isDriving }: EconomyDashboardProp
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="absolute bottom-6 left-6 z-40 flex flex-col gap-3 pointer-events-none"
+      className="absolute top-6 right-6 z-50 flex items-center gap-4 pointer-events-none"
     >
       {/* Fuel Saved Widget */}
-      <div className="flex items-center gap-3 bg-black/60 backdrop-blur-xl border border-white/10 px-4 py-2.5 rounded-2xl shadow-2xl">
-        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400">
-          <Droplet className="w-4 h-4" />
-        </div>
-        <div>
-          <div className="text-[10px] font-medium text-white/50 uppercase tracking-wider">Tasarruf (Yakıt)</div>
-          <div className="text-white font-semibold text-sm tracking-tight">
-            {fuelSavedML.toFixed(1)} <span className="text-white/40 text-xs">mL</span>
-          </div>
+      <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md border border-emerald-500/20 px-3 py-1.5 rounded-full shadow-lg">
+        <Droplet className="w-3.5 h-3.5 text-emerald-400" />
+        <div className="flex items-baseline gap-1">
+          <span className="text-white font-bold text-sm tracking-tight">{fuelSavedML.toFixed(1)}</span>
+          <span className="text-white/50 text-[10px] uppercase font-bold tracking-widest">mL</span>
         </div>
       </div>
 
       {/* Pace Points Widget */}
-      <div className="flex items-center gap-3 bg-black/60 backdrop-blur-xl border border-white/10 px-4 py-2.5 rounded-2xl shadow-2xl">
-        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-amber-500/20 text-amber-400">
-          <Coins className="w-4 h-4" />
-        </div>
-        <div>
-          <div className="text-[10px] font-medium text-white/50 uppercase tracking-wider">Pace Puanı</div>
-          <div className="text-white font-semibold text-sm tracking-tight">
-            {pacePoints.toLocaleString()} <span className="text-white/40 text-xs">Puan</span>
-          </div>
+      <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md border border-amber-500/20 px-3 py-1.5 rounded-full shadow-lg">
+        <Coins className="w-3.5 h-3.5 text-amber-400" />
+        <div className="flex items-baseline gap-1">
+          <span className="text-white font-bold text-sm tracking-tight">{pacePoints}</span>
+          <span className="text-white/50 text-[10px] uppercase font-bold tracking-widest">Puan</span>
         </div>
       </div>
     </motion.div>
