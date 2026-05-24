@@ -46,39 +46,43 @@ export function MapboxEngine({ position }: MapboxEngineProps) {
       // but 'navigation-night-v1' already includes some traffic data.
       // Let's add the standard traffic layer if available:
       if (map.current) {
-        map.current.addSource('mapbox-traffic', {
-          type: 'vector',
-          url: 'mapbox://mapbox.mapbox-traffic-v1',
-        });
+        if (!map.current.getSource('mapbox-traffic')) {
+          map.current.addSource('mapbox-traffic', {
+            type: 'vector',
+            url: 'mapbox://mapbox.mapbox-traffic-v1',
+          });
+        }
 
-        // Add traffic lines (simple representation)
-        map.current.addLayer(
-          {
-            id: 'traffic-lines',
-            type: 'line',
-            source: 'mapbox-traffic',
-            'source-layer': 'traffic',
-            paint: {
-              'line-width': 3,
-              'line-color': [
-                'match',
-                ['get', 'congestion'],
-                'low', '#30D158', // Green
-                'moderate', '#FF9F0A', // Amber
-                'heavy', '#FF453A', // Red
-                'severe', '#8B0000', // Dark Red
-                'transparent', // Fallback
-              ],
-              'line-opacity': 0.7,
+        if (!map.current.getLayer('traffic-lines')) {
+          // Add traffic lines (simple representation)
+          map.current.addLayer(
+            {
+              id: 'traffic-lines',
+              type: 'line',
+              source: 'mapbox-traffic',
+              'source-layer': 'traffic',
+              paint: {
+                'line-width': 3,
+                'line-color': [
+                  'match',
+                  ['get', 'congestion'],
+                  'low', '#30D158', // Green
+                  'moderate', '#FF9F0A', // Amber
+                  'heavy', '#FF453A', // Red
+                  'severe', '#8B0000', // Dark Red
+                  'transparent', // Fallback
+                ],
+                'line-opacity': 0.7,
+              },
             },
-          },
-          'waterway-label' // Insert below labels
-        );
+            'waterway-label' // Insert below labels
+          );
+        }
       }
 
-      // Create a sleek glowing dot for the current location
+      // Create a sleek glowing blue dot for the current location
       const el = document.createElement('div');
-      el.className = 'w-4 h-4 bg-white rounded-full shadow-[0_0_20px_5px_rgba(48,209,88,0.6)] border-4 border-[var(--pace-synced)]';
+      el.className = 'w-3 h-3 bg-[#0A84FF] rounded-full shadow-[0_0_15px_4px_rgba(10,132,255,0.8)] animate-pulse';
       
       marker.current = new mapboxgl.Marker({ element: el })
         .setLngLat([startLng, startLat])
