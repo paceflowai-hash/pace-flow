@@ -281,7 +281,7 @@ export default function DrivePage() {
       </div>
 
       {/* Traffic Density Cluster (Left Vertical) */}
-      <div className="absolute left-6 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center pointer-events-none gap-4">
+      <div className="absolute left-6 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center pointer-events-none gap-4 bg-black/40 backdrop-blur-md border border-white/5 rounded-full px-3 py-6 shadow-2xl">
         
         {/* Local Area */}
         <div className="flex flex-col items-center">
@@ -335,7 +335,7 @@ export default function DrivePage() {
       </div>
 
       {/* Delay Cluster (Right Vertical Stack) */}
-      <div className="absolute right-6 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center pointer-events-none gap-4">
+      <div className="absolute right-6 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center pointer-events-none gap-4 bg-black/40 backdrop-blur-md border border-white/5 rounded-full px-3 py-6 shadow-2xl">
         
         {/* Local Delay */}
         <div className="flex flex-col items-center">
