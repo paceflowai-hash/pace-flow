@@ -47,7 +47,6 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
   const [mapLoaded, setMapLoaded] = useState(false);
   const mapLoadedRef = useRef(false);
   const animationFrameId = useRef<number | null>(null);
-  const activeTrafficBuildingsRef = useRef<Map<string | number, string>>(new Map());
   // Initialize Map
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
@@ -121,33 +120,6 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
             type: 'vector',
             url: 'mapbox://mapbox.mapbox-traffic-v1',
           });
-        }
-
-        // Insert 3D Buildings (Cyber-City)
-        if (!map.current.getLayer('3d-buildings')) {
-          map.current.addLayer(
-            {
-              id: '3d-buildings',
-              source: 'composite',
-              'source-layer': 'building',
-              filter: ['==', 'extrude', 'true'],
-              type: 'fill-extrusion',
-              minzoom: 14,
-              paint: {
-                'fill-extrusion-color': [
-                  'match',
-                  ['coalesce', ['feature-state', 'trafficLevel'], 'none'],
-                  'red', '#8B0000',    // Koyu Kırmızımsı Parlaklık (Heavy/Severe)
-                  'orange', '#995000', // Koyu Turuncu (Moderate)
-                  '#0c0c0c'            // Varsayılan Siyah
-                ],
-                'fill-extrusion-height': ['get', 'height'],
-                'fill-extrusion-base': ['get', 'min_height'],
-                'fill-extrusion-opacity': 0.25,
-              },
-            },
-            'waterway-label' // insert beneath labels to keep them readable
-          );
         }
 
         // Add traffic glow (pulsing neon effect)
@@ -474,41 +446,6 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
             return;
           }
 
-          // Binalar Mantığı: 30 Metre (ekranda yaklaşık 25 piksel) yakındaki binaları bul
-          if (congestion === 'moderate' || congestion === 'heavy' || congestion === 'severe') {
-            const level = (congestion === 'heavy' || congestion === 'severe') ? 'red' : 'orange';
-            try {
-              const processPoint = (coord: number[]) => {
-                if (!map.current) return;
-                const sp = map.current.project([coord[0], coord[1]]);
-                const padding = 25; // Ekranda 25 piksellik bir çevre (~30 metre)
-                const bbox = [
-                  [sp.x - padding, sp.y - padding],
-                  [sp.x + padding, sp.y + padding]
-                ] as [mapboxgl.PointLike, mapboxgl.PointLike];
-                const bldgs = map.current.queryRenderedFeatures(bbox, { layers: ['3d-buildings'] });
-                bldgs.forEach(b => {
-                  if (b.id !== undefined) {
-                    // Eğer kırmızı bir caddeye yakınsa turuncu onu ezmesin
-                    const currentLevel = newTrafficBuildings.get(b.id);
-                    if (currentLevel !== 'red') {
-                      newTrafficBuildings.set(b.id, level);
-                    }
-                  }
-                });
-              };
-
-              if (typeof coords[0][0] === 'number') {
-                if (coords.length > 0) processPoint(coords[0]);
-                if (coords.length > 1) processPoint(coords[Math.floor(coords.length / 2)]);
-                if (coords.length > 2) processPoint(coords[coords.length - 1]);
-              } else if (typeof coords[0][0][0] === 'number') {
-                if (coords[0].length > 0) processPoint(coords[0][0]);
-                if (coords[0].length > 1) processPoint(coords[0][Math.floor(coords[0].length / 2)]);
-              }
-            } catch(e) {}
-          }
-
           // Distance from user to this specific road segment
           const distKm = getDistanceFromLatLonInKm(position.latitude, position.longitude, lat, lng);
           
@@ -526,24 +463,6 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
 
         const finalDensity = totalWeight > 0 ? Math.round(weightedCongestion / totalWeight) : 0;
         onTrafficDensityChange(finalDensity);
-
-        // Feature State güncellemeleri
-        if (map.current) {
-          // Eski renkli binaları normale döndür
-          activeTrafficBuildingsRef.current.forEach((_, id) => {
-            if (!newTrafficBuildings.has(id)) {
-              map.current!.setFeatureState({ source: 'composite', sourceLayer: 'building', id }, { trafficLevel: 'none' });
-            }
-          });
-          // Yeni binaları uygun renge boya
-          newTrafficBuildings.forEach((level, id) => {
-            const oldLevel = activeTrafficBuildingsRef.current.get(id);
-            if (oldLevel !== level) {
-              map.current!.setFeatureState({ source: 'composite', sourceLayer: 'building', id }, { trafficLevel: level });
-            }
-          });
-          activeTrafficBuildingsRef.current = newTrafficBuildings;
-        }
 
       } catch (err) {
         console.error("Traffic calculation error:", err);
