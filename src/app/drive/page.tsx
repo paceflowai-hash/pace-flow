@@ -420,43 +420,26 @@ export default function DrivePage() {
         )}
       </AnimatePresence>
 
-      {/* Average Area Speed (Bottom Left, Aligned with Center HUD) */}
-      <div className="absolute left-6 bottom-24 z-30 flex flex-col items-center gap-1.5 bg-black/50 backdrop-blur-md border border-white/10 rounded-[1.2rem] px-4 py-2.5 shadow-2xl pointer-events-none">
-        <div 
-          className="w-1.5 h-1.5 rounded-full animate-pulse" 
-          style={{ 
-            backgroundColor: trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158',
-            boxShadow: `0 0 6px ${trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158'}`
-          }}
-        />
-        <div className="flex flex-col items-center">
-          <span className="text-sm font-bold text-white tabular-nums tracking-tighter leading-none">{averageAreaSpeed}</span>
-          <span className="text-[7px] text-white/50 uppercase tracking-widest font-medium mt-1">KM/S</span>
-        </div>
-      </div>
+      {/* Bottom Dashboard SafeArea (Prevents overlaps, responsive scaling) */}
+      <div className="absolute bottom-24 left-0 right-0 z-30 flex justify-between items-end px-4 sm:px-6 pointer-events-none">
 
-      {/* Hourly Trend (Bottom Right, Aligned with Center HUD) */}
-      <div className="absolute right-6 bottom-24 z-30 flex flex-col items-center gap-1.5 bg-black/50 backdrop-blur-md border border-white/10 rounded-[1.2rem] px-4 py-2.5 shadow-2xl pointer-events-none">
-        <div className="flex items-end gap-1 h-4">
-           <div className="w-1 h-2 bg-white/30 rounded-full" />
-           <div 
-             className="w-1.5 h-4 rounded-full animate-pulse" 
-             style={{ 
-               backgroundColor: trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158',
-               boxShadow: `0 0 6px ${trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158'}`
-             }}
-           />
-           <div className="w-1 h-3 bg-white/30 rounded-full" />
+        {/* Average Area Speed (Bottom Left) */}
+        <div className="flex-shrink-0 flex flex-col items-center gap-1.5 bg-black/50 backdrop-blur-md border border-white/10 rounded-[1.2rem] px-4 py-2.5 shadow-2xl pointer-events-none transform scale-[0.85] sm:scale-100 origin-bottom-left">
+          <div 
+            className="w-1.5 h-1.5 rounded-full animate-pulse" 
+            style={{ 
+              backgroundColor: trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158',
+              boxShadow: `0 0 6px ${trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158'}`
+            }}
+          />
+          <div className="flex flex-col items-center">
+            <span className="text-sm font-bold text-white tabular-nums tracking-tighter leading-none">{averageAreaSpeed}</span>
+            <span className="text-[7px] text-white/50 uppercase tracking-widest font-medium mt-1">KM/S</span>
+          </div>
         </div>
-        <div className="flex flex-col items-center">
-          <span className="text-sm font-bold text-white tabular-nums tracking-wider leading-none mt-0.5">
-            {currentTime}
-          </span>
-        </div>
-      </div>
 
-      {/* HUD (Bottom Center) */}
-      <div className="absolute bottom-24 left-0 right-0 z-30 flex flex-col items-center justify-center pointer-events-none">
+        {/* HUD (Bottom Center) */}
+        <div className="flex-1 flex flex-col items-center justify-end mx-2 transform scale-[0.9] sm:scale-100 origin-bottom">
         
         {targetSpeed === 0 ? (
           <motion.div 
@@ -518,7 +501,29 @@ export default function DrivePage() {
           </svg>
           <span className="text-[10px] text-white/50 uppercase tracking-[0.2em]">{currentStreet}</span>
         </motion.div>
-      </div>
+        </div> {/* End of Bottom Center */}
+
+        {/* Hourly Trend (Bottom Right) */}
+        <div className="flex-shrink-0 flex flex-col items-center gap-1.5 bg-black/50 backdrop-blur-md border border-white/10 rounded-[1.2rem] px-4 py-2.5 shadow-2xl pointer-events-none transform scale-[0.85] sm:scale-100 origin-bottom-right">
+          <div className="flex items-end gap-1 h-4">
+             <div className="w-1 h-2 bg-white/30 rounded-full" />
+             <div 
+               className="w-1.5 h-4 rounded-full animate-pulse" 
+               style={{ 
+                 backgroundColor: trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158',
+                 boxShadow: `0 0 6px ${trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158'}`
+               }}
+             />
+             <div className="w-1 h-3 bg-white/30 rounded-full" />
+          </div>
+          <div className="flex flex-col items-center">
+            <span className="text-sm font-bold text-white tabular-nums tracking-wider leading-none mt-0.5">
+              {currentTime}
+            </span>
+          </div>
+        </div>
+
+      </div> {/* End of Bottom Dashboard SafeArea */}
 
       {/* Bottom Info Bar */}
       <div className="absolute bottom-0 left-0 right-0 z-30 px-6 py-8 flex flex-col items-center">
