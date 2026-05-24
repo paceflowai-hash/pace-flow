@@ -299,46 +299,34 @@ export default function DrivePage() {
           </span>
         </div>
 
-        {/* District & City Cluster */}
-        <div className="flex gap-2.5 items-end">
-          {/* District */}
-          <div className="flex flex-col items-center">
-            <span className="text-[8px] text-white/60 font-bold tabular-nums mb-1.5">
-              {Math.round(districtDensity)}%
-            </span>
-            <div className="w-1 h-16 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-2">
-              <motion.div 
-                className="w-full rounded-full"
-                style={{ 
-                  backgroundColor: districtDensity > 70 ? '#FF453A' : districtDensity > 40 ? '#FF9F0A' : '#30D158'
-                }}
-                animate={{ height: `${Math.max(2, districtDensity)}%` }}
-                transition={{ duration: 2, ease: 'easeOut' }}
-              />
-            </div>
-            <span className="text-[7px] text-white/30 uppercase tracking-[0.2em] [writing-mode:vertical-lr] rotate-180">
-              İlçe
-            </span>
-          </div>
-
+        {/* District & City Cluster (Horizontal Stack) */}
+        <div className="flex flex-col gap-2 w-20 mt-1">
           {/* City */}
-          <div className="flex flex-col items-center">
-            <span className="text-[8px] text-white/60 font-bold tabular-nums mb-1.5">
-              {Math.round(cityDensity)}%
-            </span>
-            <div className="w-1 h-12 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-2">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[7px] text-white/30 uppercase tracking-[0.2em] w-3">İl</span>
+            <div className="flex-1 h-0.5 bg-white/10 rounded-full overflow-hidden">
               <motion.div 
-                className="w-full rounded-full"
-                style={{ 
-                  backgroundColor: cityDensity > 70 ? '#FF453A' : cityDensity > 40 ? '#FF9F0A' : '#30D158'
-                }}
-                animate={{ height: `${Math.max(2, cityDensity)}%` }}
+                className="h-full rounded-full"
+                style={{ backgroundColor: cityDensity > 70 ? '#FF453A' : cityDensity > 40 ? '#FF9F0A' : '#30D158' }}
+                animate={{ width: `${Math.max(5, cityDensity)}%` }}
                 transition={{ duration: 3, ease: 'easeOut' }}
               />
             </div>
-            <span className="text-[7px] text-white/30 uppercase tracking-[0.2em] [writing-mode:vertical-lr] rotate-180">
-              İl
-            </span>
+            <span className="text-[7px] text-white/60 font-bold tabular-nums w-4 text-right">{Math.round(cityDensity)}%</span>
+          </div>
+
+          {/* District */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-[7px] text-white/30 uppercase tracking-[0.2em] w-3">İlç</span>
+            <div className="flex-1 h-0.5 bg-white/10 rounded-full overflow-hidden">
+              <motion.div 
+                className="h-full rounded-full"
+                style={{ backgroundColor: districtDensity > 70 ? '#FF453A' : districtDensity > 40 ? '#FF9F0A' : '#30D158' }}
+                animate={{ width: `${Math.max(5, districtDensity)}%` }}
+                transition={{ duration: 2, ease: 'easeOut' }}
+              />
+            </div>
+            <span className="text-[7px] text-white/60 font-bold tabular-nums w-4 text-right">{Math.round(districtDensity)}%</span>
           </div>
         </div>
 
