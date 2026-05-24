@@ -101,7 +101,12 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
               source: 'mapbox-traffic',
               'source-layer': 'traffic',
               paint: {
-                'line-width': 4,
+                'line-width': [
+                  'match',
+                  ['get', 'congestion'],
+                  'low', 1.5, // Çok ince yeşil
+                  4 // Diğerleri kalın
+                ],
                 'line-color': [
                   'match',
                   ['get', 'congestion'],
@@ -111,7 +116,12 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
                   'severe', '#BF5AF2',
                   'transparent',
                 ],
-                'line-opacity': 0.9,
+                'line-opacity': [
+                  'match',
+                  ['get', 'congestion'],
+                  'low', 0.2, // Neredeyse görünmez / koyu arka plana karışır
+                  0.9 // Diğerleri parlak
+                ],
               },
             },
             'waterway-label'
