@@ -90,7 +90,12 @@ export default function DrivePage() {
 
   // Derived Local Area Delay
   const delayMinutes = Math.round(Math.pow(trafficDensity / 100, 2) * 20);
+  const districtDelayMinutes = Math.round(Math.pow(districtDensity / 100, 2) * 30);
+  const cityDelayMinutes = Math.round(Math.pow(cityDensity / 100, 2) * 45);
+
   const delayPercentage = Math.max(2, (delayMinutes / 20) * 100);
+  const districtDelayPercentage = Math.max(2, (districtDelayMinutes / 30) * 100);
+  const cityDelayPercentage = Math.max(2, (cityDelayMinutes / 45) * 100);
 
   // ── Reverse Geocoding (Sokak İsmi) ──
   const [currentStreet, setCurrentStreet] = useState<string>('Konum Aranıyor...');
@@ -329,25 +334,53 @@ export default function DrivePage() {
 
       </div>
 
-      {/* Delay Bar (Right Vertical) */}
-      <div className="absolute right-6 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center pointer-events-none">
-        <span className="text-[10px] text-white/70 font-bold tabular-nums mb-2">
-          +{delayMinutes}dk
-        </span>
-        <div className="w-1.5 h-32 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-3">
-          <motion.div 
-            className="w-full rounded-full animate-pulse"
-            style={{ 
-              backgroundColor: delayMinutes > 10 ? '#FF453A' : delayMinutes > 3 ? '#FF9F0A' : '#30D158',
-              boxShadow: `0 0 10px ${delayMinutes > 10 ? '#FF453A' : delayMinutes > 3 ? '#FF9F0A' : '#30D158'}`
-            }}
-            animate={{ height: `${delayPercentage}%` }}
-            transition={{ duration: 1.5, ease: 'easeOut' }}
-          />
+      {/* Delay Cluster (Right Vertical Stack) */}
+      <div className="absolute right-6 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center pointer-events-none gap-4">
+        
+        {/* Local Delay */}
+        <div className="flex flex-col items-center">
+          <span className="text-[10px] text-white/70 font-bold tabular-nums mb-2">+{delayMinutes}dk</span>
+          <div className="w-1.5 h-28 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-3">
+            <motion.div 
+              className="w-full rounded-full animate-pulse"
+              style={{ 
+                backgroundColor: delayMinutes > 10 ? '#FF453A' : delayMinutes > 3 ? '#FF9F0A' : '#30D158',
+                boxShadow: `0 0 10px ${delayMinutes > 10 ? '#FF453A' : delayMinutes > 3 ? '#FF9F0A' : '#30D158'}`
+              }}
+              animate={{ height: `${delayPercentage}%` }}
+              transition={{ duration: 1.5, ease: 'easeOut' }}
+            />
+          </div>
+          <span className="text-[9px] text-white/40 uppercase tracking-[0.2em] [writing-mode:vertical-lr] rotate-180">Gecikme</span>
         </div>
-        <span className="text-[9px] text-white/40 uppercase tracking-[0.2em] [writing-mode:vertical-lr] rotate-180">
-          Gecikme Süresi
-        </span>
+
+        {/* District Delay */}
+        <div className="flex flex-col items-center">
+          <span className="text-[9px] text-white/60 font-bold tabular-nums mb-1.5">+{districtDelayMinutes}dk</span>
+          <div className="w-1.5 h-20 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-2">
+            <motion.div 
+              className="w-full rounded-full"
+              style={{ backgroundColor: districtDelayMinutes > 15 ? '#FF453A' : districtDelayMinutes > 5 ? '#FF9F0A' : '#30D158' }}
+              animate={{ height: `${districtDelayPercentage}%` }}
+              transition={{ duration: 2, ease: 'easeOut' }}
+            />
+          </div>
+          <span className="text-[8px] text-white/30 uppercase tracking-[0.2em] [writing-mode:vertical-lr] rotate-180">İlçe</span>
+        </div>
+
+        {/* City Delay */}
+        <div className="flex flex-col items-center">
+          <span className="text-[8px] text-white/50 font-bold tabular-nums mb-1">+{cityDelayMinutes}dk</span>
+          <div className="w-1 h-16 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-2">
+            <motion.div 
+              className="w-full rounded-full"
+              style={{ backgroundColor: cityDelayMinutes > 20 ? '#FF453A' : cityDelayMinutes > 10 ? '#FF9F0A' : '#30D158' }}
+              animate={{ height: `${cityDelayPercentage}%` }}
+              transition={{ duration: 3, ease: 'easeOut' }}
+            />
+          </div>
+          <span className="text-[7px] text-white/30 uppercase tracking-[0.2em] [writing-mode:vertical-lr] rotate-180">İl</span>
+        </div>
       </div>
 
       {/* Shock Wave Alert Banner */}
