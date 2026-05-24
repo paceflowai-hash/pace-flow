@@ -348,21 +348,6 @@ export default function DrivePage() {
         </div>
         
         </div> {/* End of Bars Container */}
-
-        {/* Average Area Speed (Separate Small Pill) */}
-        <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-md border border-white/10 rounded-full px-2.5 py-1.5 shadow-2xl pointer-events-none">
-          <div 
-            className="w-1.5 h-1.5 rounded-full animate-pulse" 
-            style={{ 
-              backgroundColor: trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158',
-              boxShadow: `0 0 6px ${trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158'}`
-            }}
-          />
-          <span className="text-[8px] text-white/80 uppercase tracking-[0.2em] font-medium">
-            <span className="font-bold text-white">{averageAreaSpeed}</span> KM/S
-          </span>
-        </div>
-
       </div>
 
       {/* Delay Cluster (Right Vertical Stack) */}
@@ -417,22 +402,6 @@ export default function DrivePage() {
         </div>
         
         </div> {/* End of Delay Bars */}
-
-        {/* Hourly Trend (Separate Small Pill) */}
-        <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-md border border-white/10 rounded-full px-2.5 py-1.5 shadow-2xl pointer-events-none">
-          <div className="flex items-end gap-0.5 h-3">
-             <div className="w-0.5 h-1.5 bg-white/30 rounded-full" />
-             <div 
-               className="w-1 h-3 rounded-full animate-pulse" 
-               style={{ backgroundColor: trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158' }}
-             />
-             <div className="w-0.5 h-2 bg-white/30 rounded-full" />
-          </div>
-          <span className="text-[8px] text-white/80 uppercase tracking-[0.2em] font-medium">
-            SAAT: <span className="font-bold text-white">{currentTime}</span>
-          </span>
-        </div>
-
       </div>
 
       {/* Shock Wave Alert Banner */}
@@ -450,6 +419,41 @@ export default function DrivePage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Average Area Speed (Bottom Left, Aligned with Center HUD) */}
+      <div className="absolute left-6 bottom-24 z-30 flex flex-col items-center gap-1.5 bg-black/50 backdrop-blur-md border border-white/10 rounded-[1.2rem] px-4 py-2.5 shadow-2xl pointer-events-none">
+        <div 
+          className="w-1.5 h-1.5 rounded-full animate-pulse" 
+          style={{ 
+            backgroundColor: trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158',
+            boxShadow: `0 0 6px ${trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158'}`
+          }}
+        />
+        <div className="flex flex-col items-center">
+          <span className="text-sm font-bold text-white tabular-nums tracking-tighter leading-none">{averageAreaSpeed}</span>
+          <span className="text-[7px] text-white/50 uppercase tracking-widest font-medium mt-1">KM/S</span>
+        </div>
+      </div>
+
+      {/* Hourly Trend (Bottom Right, Aligned with Center HUD) */}
+      <div className="absolute right-6 bottom-24 z-30 flex flex-col items-center gap-1.5 bg-black/50 backdrop-blur-md border border-white/10 rounded-[1.2rem] px-4 py-2.5 shadow-2xl pointer-events-none">
+        <div className="flex items-end gap-1 h-4">
+           <div className="w-1 h-2 bg-white/30 rounded-full" />
+           <div 
+             className="w-1.5 h-4 rounded-full animate-pulse" 
+             style={{ 
+               backgroundColor: trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158',
+               boxShadow: `0 0 6px ${trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158'}`
+             }}
+           />
+           <div className="w-1 h-3 bg-white/30 rounded-full" />
+        </div>
+        <div className="flex flex-col items-center">
+          <span className="text-sm font-bold text-white tabular-nums tracking-wider leading-none mt-0.5">
+            {currentTime}
+          </span>
+        </div>
+      </div>
 
       {/* HUD (Bottom Center) */}
       <div className="absolute bottom-24 left-0 right-0 z-30 flex flex-col items-center justify-center pointer-events-none">
