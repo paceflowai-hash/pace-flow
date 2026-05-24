@@ -83,8 +83,8 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
               'source-layer': 'traffic',
               filter: ['!=', 'congestion', 'low'], // Sadece trafik olan (yoğun) yerler
               paint: {
-                'line-width': 12,
-                'line-blur': 8,
+                'line-width': 24,
+                'line-blur': 12,
                 'line-color': [
                   'match',
                   ['get', 'congestion'],
@@ -136,12 +136,21 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
           );
         }
 
-        // Start pulse animation
+        // Start pulse animation (Heartbeat Effect)
         const animateGlow = (timestamp: number) => {
           if (!map.current || !map.current.getLayer('traffic-glow')) return;
-          // Sine wave calculation for breathing effect
-          const progress = timestamp / 600; 
-          const opacity = 0.2 + (0.6 * (Math.sin(progress) + 1) / 2);
+          
+          // Heartbeat calculation (1.5s cycle: lub-dub... pause)
+          const t = (timestamp % 1500) / 1500;
+          let opacity = 0.1;
+          
+          if (t < 0.15) {
+            // First beat (lub) - Strong
+            opacity = 0.1 + 0.9 * Math.sin((t / 0.15) * Math.PI);
+          } else if (t > 0.25 && t < 0.4) {
+            // Second beat (dub) - Slightly weaker
+            opacity = 0.1 + 0.7 * Math.sin(((t - 0.25) / 0.15) * Math.PI);
+          }
           
           try {
             map.current.setPaintProperty('traffic-glow', 'line-opacity', opacity);
