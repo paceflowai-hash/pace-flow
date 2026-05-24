@@ -273,16 +273,17 @@ export default function DrivePage() {
         </div>
 
         {/* Average Area Speed (Center Pill) */}
-        <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center bg-black/50 backdrop-blur-md border border-white/10 rounded-[2rem] px-8 py-2 shadow-2xl">
-          <span className="text-[8px] text-white/50 uppercase tracking-[0.2em] mb-0.5">
-            Çevre Akış Hızı
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3 bg-black/50 backdrop-blur-md border border-white/10 rounded-full px-5 py-2.5 shadow-2xl">
+          <div 
+            className="w-1.5 h-1.5 rounded-full animate-pulse" 
+            style={{ 
+              backgroundColor: trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158',
+              boxShadow: `0 0 8px ${trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158'}`
+            }}
+          />
+          <span className="text-[11px] text-white/80 uppercase tracking-[0.25em] font-medium flex items-baseline">
+            Çevre Hızı: <span className="text-sm font-bold text-white ml-1.5">{averageAreaSpeed} KM/S</span>
           </span>
-          <div className="flex items-baseline gap-1">
-            <span className="text-xl font-bold text-white tabular-nums tracking-tighter">
-              {averageAreaSpeed}
-            </span>
-            <span className="text-[10px] text-white/40 font-bold">km/s</span>
-          </div>
         </div>
 
         {/* PacingPoints */}
