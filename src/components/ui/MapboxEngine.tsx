@@ -83,8 +83,8 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
               'source-layer': 'traffic',
               filter: ['!=', 'congestion', 'low'], // Sadece trafik olan (yoğun) yerler
               paint: {
-                'line-width': 24,
-                'line-blur': 12,
+                'line-width': 40,
+                'line-blur': 20,
                 'line-color': [
                   'match',
                   ['get', 'congestion'],
@@ -113,7 +113,7 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
                   'match',
                   ['get', 'congestion'],
                   'low', 1, // Tek bir ince çizgi
-                  4 // Diğerleri kalın
+                  8 // Diğerleri kalın (4'ten 8'e çıkarıldı)
                 ],
                 'line-color': [
                   'match',
@@ -142,14 +142,14 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
           
           // Heartbeat calculation (1.5s cycle: lub-dub... pause)
           const t = (timestamp % 1500) / 1500;
-          let opacity = 0.1;
+          let opacity = 0.2; // Base glow opacity
           
           if (t < 0.15) {
             // First beat (lub) - Strong
-            opacity = 0.1 + 0.9 * Math.sin((t / 0.15) * Math.PI);
+            opacity = 0.2 + 0.8 * Math.sin((t / 0.15) * Math.PI); // reaches 1.0
           } else if (t > 0.25 && t < 0.4) {
             // Second beat (dub) - Slightly weaker
-            opacity = 0.1 + 0.7 * Math.sin(((t - 0.25) / 0.15) * Math.PI);
+            opacity = 0.2 + 0.6 * Math.sin(((t - 0.25) / 0.15) * Math.PI); // reaches 0.8
           }
           
           try {
