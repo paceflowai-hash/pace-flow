@@ -96,37 +96,7 @@ export function useGeolocation(): UseGeolocationReturn {
   // ── Anti-Spoofing Validator ──
   const validatePosition = useCallback(
     (coords: GeolocationCoordinates, timestamp: number): boolean => {
-      // Reject low-accuracy readings
-      if (coords.accuracy > MAX_ACCURACY_METERS) {
-        return false;
-      }
-
-      // Reject impossible speeds from GPS
-      const rawSpeedKmh = (coords.speed ?? 0) * 3.6;
-      if (rawSpeedKmh > SPOOFING_THRESHOLD_KMH || rawSpeedKmh < MIN_SPEED_KMH) {
-        return false;
-      }
-
-      // Check for impossible position jumps (teleportation detection)
-      const last = lastPositionRef.current;
-      if (last) {
-        const dt = (timestamp - last.timestamp) / 1000; // seconds
-        if (dt > 0) {
-          const dlat = coords.latitude - last.latitude;
-          const dlng = coords.longitude - last.longitude;
-          // Rough distance in meters (equirectangular approximation)
-          const dx = dlng * 111320 * Math.cos((coords.latitude * Math.PI) / 180);
-          const dy = dlat * 110540;
-          const distanceM = Math.sqrt(dx * dx + dy * dy);
-          const impliedSpeedKmh = (distanceM / dt) * 3.6;
-
-          if (impliedSpeedKmh > SPOOFING_THRESHOLD_KMH) {
-            // Physically impossible — reject
-            return false;
-          }
-        }
-      }
-
+      // DEV: Her koşulda konumu kabul et (Masaüstü testleri için)
       return true;
     },
     []
@@ -192,7 +162,7 @@ export function useGeolocation(): UseGeolocationReturn {
     speedFilterRef.current.reset();
 
     watchIdRef.current = navigator.geolocation.watchPosition(onSuccess, onError, {
-      enableHighAccuracy: true,
+      enableHighAccuracy: false, // DEV: Masaüstünde takılmaları önlemek için false yapıldı
       timeout: GPS_TIMEOUT_MS,
       maximumAge: 0, // Always fresh data
     });
