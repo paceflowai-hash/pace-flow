@@ -10,6 +10,9 @@ mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
 interface MapboxEngineProps {
   position: GeoPosition | null;
+  targetSpeed?: number;
+  currentSpeed?: number;
+  showShockAlert?: boolean;
   onTrafficDensityChange?: (density: number) => void;
 }
 
@@ -26,10 +29,21 @@ function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon
   return R * c;
 }
 
-export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineProps) {
+// ── Offset Calculation (Meters to LatLng) ──
+function getOffsetLatLng(lat: number, lng: number, distanceMeters: number, bearingDegrees: number): [number, number] {
+  const R = 6378137; // Earth's radius in meters
+  const dLat = distanceMeters * Math.cos(bearingDegrees * Math.PI / 180) / R;
+  const dLng = distanceMeters * Math.sin(bearingDegrees * Math.PI / 180) / (R * Math.cos(lat * Math.PI / 180));
+  return [lng + (dLng * 180 / Math.PI), lat + (dLat * 180 / Math.PI)];
+}
+
+export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, showShockAlert = false, onTrafficDensityChange }: MapboxEngineProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const marker = useRef<mapboxgl.Marker | null>(null);
+  const rabbitMarker = useRef<mapboxgl.Marker | null>(null);
+  const hiveMarkers = useRef<mapboxgl.Marker[]>([]);
+  const shockMarker = useRef<mapboxgl.Marker | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const mapLoadedRef = useRef(false);
   const animationFrameId = useRef<number | null>(null);
@@ -287,6 +301,24 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
       })
         .setLngLat([startLng, startLat])
         .addTo(map.current!);
+      // Create Pace Rabbit Marker
+      const rabbitEl = document.createElement('div');
+      rabbitEl.className = 'w-6 h-6 rounded-full bg-white/80 blur-[2px] shadow-[0_0_20px_#FFF] animate-pulse';
+      rabbitMarker.current = new mapboxgl.Marker({ element: rabbitEl }).setLngLat([startLng, startLat]).addTo(map.current!);
+
+      // Create Hive Markers
+      for (let i = 0; i < 4; i++) {
+        const hiveEl = document.createElement('div');
+        hiveEl.className = 'w-3 h-3 rounded-full bg-[#0A84FF]/60 blur-[1px] shadow-[0_0_10px_#0A84FF] transition-all duration-1000';
+        const hMarker = new mapboxgl.Marker({ element: hiveEl }).setLngLat([startLng, startLat]).addTo(map.current!);
+        hiveMarkers.current.push(hMarker);
+      }
+
+      // Create Shock Marker
+      const shockEl = document.createElement('div');
+      shockEl.className = 'w-96 h-96 rounded-full border-[8px] border-[#FF453A] bg-[#FF453A]/20 scale-0 opacity-0 transition-all duration-700 pointer-events-none';
+      shockMarker.current = new mapboxgl.Marker({ element: shockEl }).setLngLat([startLng, startLat]).addTo(map.current!);
+
     });
 
     return () => {
@@ -315,8 +347,6 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
     const targetBearing = speed > 5 ? position.heading : map.current.getBearing();
 
     // Directional Marker Rotation (Google Maps Style)
-    // If map is rotated to heading, cone points UP (0deg).
-    // If map is stationary, cone rotates to show heading relative to map.
     const markerRotation = position.heading - targetBearing;
     
     map.current.easeTo({
@@ -328,10 +358,46 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
       easing: (t) => t * (2 - t),
     });
 
-    // Update marker position and rotation
+    // Update Main Marker
     marker.current?.setLngLat([position.longitude, position.latitude]);
     marker.current?.setRotation(markerRotation);
-  }, [position, mapLoaded]);
+
+    // Update Pace Rabbit (Ghost Car)
+    if (targetSpeed > 0 && rabbitMarker.current) {
+      // Rabbit is a few meters ahead based on speed difference
+      const speedDiff = targetSpeed - currentSpeed;
+      const distanceMeters = 50 + (speedDiff * 2); // default 50m ahead, increases if we are too slow
+      const rabbitPos = getOffsetLatLng(position.latitude, position.longitude, Math.max(20, distanceMeters), position.heading);
+      rabbitMarker.current.setLngLat(rabbitPos);
+    } else {
+      // Hide rabbit if no target speed
+      rabbitMarker.current?.setLngLat([0, 0]);
+    }
+
+    // Update Hive Vehicles (Sürü Modu)
+    hiveMarkers.current.forEach((hm, idx) => {
+      // Randomly offset them by 20-50 meters around the user
+      const rDist = 30 + (idx * 15) + (Math.sin(Date.now() / 2000 + idx) * 10);
+      const rBearing = position.heading + (idx % 2 === 0 ? 90 : -90) + (Math.cos(Date.now() / 3000 + idx) * 20);
+      const hivePos = getOffsetLatLng(position.latitude, position.longitude, rDist, rBearing);
+      hm.setLngLat(hivePos);
+    });
+
+    // Update Shock Wave Radar
+    if (showShockAlert && shockMarker.current) {
+      // Show shockwave 1km ahead
+      const shockPos = getOffsetLatLng(position.latitude, position.longitude, 1000, position.heading);
+      shockMarker.current.setLngLat(shockPos);
+      const el = shockMarker.current.getElement();
+      el.classList.remove('scale-0', 'opacity-0');
+      el.classList.add('scale-100', 'opacity-100', 'animate-ping');
+    } else if (shockMarker.current) {
+      const el = shockMarker.current.getElement();
+      el.classList.remove('scale-100', 'opacity-100', 'animate-ping');
+      el.classList.add('scale-0', 'opacity-0');
+    }
+
+  }, [position, mapLoaded, targetSpeed, currentSpeed, showShockAlert]);
 
   // ── Traffic Density Real-time Spatial Calculation ──
   useEffect(() => {

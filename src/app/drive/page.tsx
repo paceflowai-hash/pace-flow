@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGeolocation, useWakeLock, useDeviceMotion } from '@/lib/hooks';
 import { MapboxEngine } from '@/components/ui/MapboxEngine';
+import { EconomyDashboard } from '@/components/ui/EconomyDashboard';
 
 // ─── Pace Status Logic ────────────────────────────────
 type PaceStatus = 'idle' | 'speed_up' | 'synced' | 'slow_down';
@@ -55,9 +56,9 @@ export default function DrivePage() {
   const [targetSpeed, setTargetSpeed] = useState(0);
   const [displaySpeed, setDisplaySpeed] = useState(0);
   const [nearbyCount] = useState(0);
-  const [pacingPoints, setPacingPoints] = useState(0);
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [serverShock, setServerShock] = useState(0);
+  const [simulatedShock, setSimulatedShock] = useState(false); // Manual trigger for Radar
 
   const currentSpeed = position?.speed_kmh ?? 0;
   const paceStatus = getPaceStatus(currentSpeed, targetSpeed);
@@ -245,28 +246,21 @@ export default function DrivePage() {
     return () => clearInterval(interval);
   }, [targetSpeed]);
 
-  // ── PacingPoints accrual (every 10 seconds) ──
-  useEffect(() => {
-    if (!isSessionActive || targetSpeed === 0) return;
-
-    const interval = setInterval(() => {
-      if (paceStatus === 'synced') {
-        setPacingPoints((p) => p + 1);
-      }
-    }, 10000);
-
-    return () => clearInterval(interval);
-  }, [isSessionActive, targetSpeed, paceStatus]);
+  // ── Manual Shockwave Radar Trigger (For Demo) ──
+  const triggerSuddenBrake = () => {
+    setSimulatedShock(true);
+    setTimeout(() => setSimulatedShock(false), 5000); // Radar alert lasts 5 seconds
+  };
 
   // ── Shock wave alert indicator ──
   const [showShockAlert, setShowShockAlert] = useState(false);
   useEffect(() => {
-    if (lastShock || serverShock) {
+    if (lastShock || serverShock || simulatedShock) {
       setShowShockAlert(true);
-      const timer = setTimeout(() => setShowShockAlert(false), 3000);
+      const timer = setTimeout(() => setShowShockAlert(false), 5000);
       return () => clearTimeout(timer);
     }
-  }, [lastShock, serverShock]);
+  }, [lastShock, serverShock, simulatedShock]);
 
   // ── Permission denied state ──
   if (permission === 'denied') {
@@ -330,16 +324,6 @@ export default function DrivePage() {
           />
           <span className="text-xs font-medium text-[var(--text-secondary)] tracking-widest uppercase">
             Pace/Flow
-          </span>
-        </div>
-
-        {/* PacingPoints */}
-        <div className="flex items-center gap-1.5">
-          <svg className="w-4 h-4 text-[var(--pace-synced)]" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" />
-          </svg>
-          <span className="text-sm font-bold text-white tabular-nums">
-            {pacingPoints}
           </span>
         </div>
       </div>
@@ -460,14 +444,20 @@ export default function DrivePage() {
       <AnimatePresence>
         {showShockAlert && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="absolute top-16 left-4 right-4 z-40 bg-[var(--pace-danger)]/20 border border-[var(--pace-danger)] px-4 py-2 text-center"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="absolute top-24 left-1/2 -translate-x-1/2 bg-[#FF453A]/90 backdrop-blur-xl border border-[#FF453A]/50 px-6 py-4 rounded-2xl shadow-[0_10px_40px_rgba(255,69,58,0.5)] z-50 flex items-center gap-4"
           >
-            <span className="text-xs font-bold text-[var(--pace-danger)] uppercase tracking-widest">
-              ⚠ Sert Fren Algılandı — Şok Dalgası Uyarısı
-            </span>
+            <div className="w-12 h-12 rounded-full bg-black/20 flex items-center justify-center animate-pulse">
+              <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-white font-bold text-lg uppercase tracking-wider">İleride Ani Fren</h2>
+              <p className="text-white/80 text-sm font-medium">1 km ileride tehlike. Lütfen yavaşlayın.</p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -606,6 +596,17 @@ export default function DrivePage() {
             <span className="text-[9px] text-white/30 uppercase tracking-widest">
               {position.heading > 0 ? `${Math.round(position.heading)}°` : 'YÖN BEKLENİYOR'}
             </span>
+            
+            {/* Demo Sudden Brake Trigger */}
+            <button 
+              onClick={triggerSuddenBrake}
+              className="ml-4 w-8 h-8 rounded-full bg-white/5 border border-white/10 backdrop-blur-md flex items-center justify-center hover:bg-white/10 transition-colors"
+              title="Test Ani Fren Radarı"
+            >
+              <svg className="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </button>
           </div>
         )}
       </div>
