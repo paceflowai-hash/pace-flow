@@ -83,12 +83,18 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
               }
               // Normal yolları (trafiksiz) Tron/Neon tarzı ince mavi çizgiler yapalım
               if (layer.id.includes('road') && layer.type === 'line' && !layer.id.includes('traffic')) {
-                map.current.setPaintProperty(layer.id, 'line-color', '#0A84FF'); // Neon mavi
-                map.current.setPaintProperty(layer.id, 'line-opacity', 0.3); // Göz yormaması için şeffaf
-                try {
-                  // Bazı katmanlarda width override edilemeyebilir, o yüzden try içine alıyoruz
-                  map.current.setPaintProperty(layer.id, 'line-width', 0.5); 
-                } catch (e) {}
+                if (layer.id.includes('case') || layer.id.includes('casing')) {
+                  // Çerçeveleri gizle (çift çizgi karmaşasını önler)
+                  map.current.setPaintProperty(layer.id, 'line-opacity', 0);
+                } else {
+                  // Sadece yolun içini (tek çizgi) mavi yap
+                  map.current.setPaintProperty(layer.id, 'line-color', '#0A84FF'); // Neon mavi
+                  map.current.setPaintProperty(layer.id, 'line-opacity', 0.5); // Daha net görünüm
+                  try {
+                    // Kalınlığı iç çizgiye uygun yap
+                    map.current.setPaintProperty(layer.id, 'line-width', 1); 
+                  } catch (e) {}
+                }
               }
             } catch (e) {
               // Bazı katmanlarda bu özellikler olmayabilir, sessizce geç
