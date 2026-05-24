@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGeolocation, useWakeLock, useDeviceMotion } from '@/lib/hooks';
 import { MapboxEngine } from '@/components/ui/MapboxEngine';
@@ -61,6 +61,44 @@ export default function DrivePage() {
   
   // Mock traffic density based on speed (Faz 3 UI simulation)
   const trafficDensity = Math.max(10, Math.min(95, 100 - (currentSpeed * 0.8)));
+
+  // ── Reverse Geocoding (Sokak İsmi) ──
+  const [currentStreet, setCurrentStreet] = useState<string>('Konum Aranıyor...');
+  const lastGeocodeRef = useRef<{lat: number, lng: number, time: number} | null>(null);
+
+  useEffect(() => {
+    if (!position) return;
+    
+    const now = Date.now();
+    const last = lastGeocodeRef.current;
+    
+    // Throttle to every 10 seconds to save API calls
+    if (last && now - last.time < 10000) return;
+
+    const fetchStreet = async () => {
+      try {
+        const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+        if (!token) return;
+        
+        const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${position.longitude},${position.latitude}.json?types=address,poi,neighborhood,locality&access_token=${token}`);
+        const data = await res.json();
+        
+        if (data.features && data.features.length > 0) {
+          // Find the best match (closest specific feature)
+          const feature = data.features[0];
+          setCurrentStreet(feature.text || 'Bilinmeyen Yol');
+        } else {
+          setCurrentStreet('Bilinmeyen Yol');
+        }
+        
+        lastGeocodeRef.current = { lat: position.latitude, lng: position.longitude, time: Date.now() };
+      } catch (err) {
+        console.error('Geocoding error:', err);
+      }
+    };
+
+    fetchStreet();
+  }, [position?.latitude, position?.longitude]);
 
   // ── Start Drive Session ──
   useEffect(() => {
@@ -270,6 +308,19 @@ export default function DrivePage() {
             </motion.div>
           </div>
         )}
+
+        {/* Street Name Indicator */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="mt-4 flex items-center gap-1.5 bg-black/30 backdrop-blur-sm px-3 py-1 rounded-full border border-white/5"
+        >
+          <svg className="w-3 h-3 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span className="text-[10px] text-white/50 uppercase tracking-[0.2em]">{currentStreet}</span>
+        </motion.div>
       </div>
 
       {/* Bottom Info Bar */}
@@ -283,7 +334,7 @@ export default function DrivePage() {
           </div>
           <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
             <motion.div 
-              className="h-full rounded-full"
+              className="h-full rounded-full animate-pulse"
               style={{ 
                 backgroundColor: trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158',
                 boxShadow: `0 0 10px ${trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158'}`
