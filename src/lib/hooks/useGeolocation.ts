@@ -172,11 +172,11 @@ export function useGeolocation(): UseGeolocationReturn {
         setStatus('error');
         break;
       case geoError.POSITION_UNAVAILABLE:
-        setError('Konum bilgisi alınamıyor. GPS sinyali bekleniyor...');
+        // Silently wait for the next GPS signal without spamming the UI
         setStatus('paused');
         break;
       case geoError.TIMEOUT:
-        setError('Konum isteği zaman aşımına uğradı.');
+        // Silently retry
         setStatus('paused');
         break;
     }
