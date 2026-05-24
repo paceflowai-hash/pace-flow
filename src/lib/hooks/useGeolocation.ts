@@ -27,7 +27,7 @@ export interface UseGeolocationReturn {
 
 // ─── Constants ─────────────────────────────────────────
 const SPOOFING_THRESHOLD_KMH = 300;
-const MAX_ACCURACY_METERS = 50;
+const MAX_ACCURACY_METERS = 50000; // Increased massively for development/desktop testing
 const MOVING_AVG_WINDOW = 5;
 const GPS_TIMEOUT_MS = 10000;
 const MIN_SPEED_KMH = 0;
