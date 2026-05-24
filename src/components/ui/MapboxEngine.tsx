@@ -80,9 +80,13 @@ export function MapboxEngine({ position }: MapboxEngineProps) {
         }
       }
 
-      // Create a sleek glowing blue dot for the current location
+      // Create a highly professional, Apple Maps / Tesla style location marker
       const el = document.createElement('div');
-      el.className = 'w-3 h-3 bg-[#0A84FF] rounded-full shadow-[0_0_15px_4px_rgba(10,132,255,0.8)] animate-pulse';
+      el.className = 'relative flex items-center justify-center w-10 h-10';
+      el.innerHTML = `
+        <div class="absolute inset-0 bg-[#0A84FF] rounded-full opacity-20 animate-ping" style="animation-duration: 3s;"></div>
+        <div class="relative w-4 h-4 bg-[#0A84FF] rounded-full border-[2.5px] border-white shadow-[0_2px_10px_rgba(0,0,0,0.5)]"></div>
+      `;
       
       marker.current = new mapboxgl.Marker({ element: el })
         .setLngLat([startLng, startLat])
