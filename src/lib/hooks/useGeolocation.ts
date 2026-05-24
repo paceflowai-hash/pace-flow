@@ -162,32 +162,10 @@ export function useGeolocation(): UseGeolocationReturn {
     speedFilterRef.current.reset();
 
     watchIdRef.current = navigator.geolocation.watchPosition(onSuccess, onError, {
-      enableHighAccuracy: false, // DEV: Masaüstünde takılmaları önlemek için false yapıldı
+      enableHighAccuracy: true,
       timeout: GPS_TIMEOUT_MS,
       maximumAge: 0, // Always fresh data
     });
-
-    // DEV: Eğer masaüstü tarayıcı tamamen takılır ve ne hata ne de başarı dönerse
-    // 3 saniye sonra otomatik olarak mock bir konum yükle (İstanbul/Kadıköy).
-    setTimeout(() => {
-      setPosition((currentPosition) => {
-        if (!currentPosition) {
-          const mockPosition: GeoPosition = {
-            latitude: 40.9901,
-            longitude: 29.0292,
-            speed_kmh: 0,
-            speed_raw_kmh: 0,
-            heading: 0,
-            accuracy: 10,
-            timestamp: Date.now(),
-          };
-          setStatus('watching');
-          setError(null);
-          return mockPosition;
-        }
-        return currentPosition;
-      });
-    }, 3000);
   }, [onSuccess, onError]);
 
   // ── Stop watching ──
