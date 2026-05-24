@@ -31,7 +31,8 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
   const map = useRef<mapboxgl.Map | null>(null);
   const marker = useRef<mapboxgl.Marker | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
-
+  const mapLoadedRef = useRef(false);
+  const animationFrameId = useRef<number | null>(null);
   // Initialize Map
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
@@ -56,9 +57,6 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
       setMapLoaded(true);
 
       // Add traffic layer if supported by the style
-      // Note: Mapbox Traffic v1 plugin might require additional setup,
-      // but 'navigation-night-v1' already includes some traffic data.
-      // Let's add the standard traffic layer if available:
       if (map.current) {
         if (!map.current.getSource('mapbox-traffic')) {
           map.current.addSource('mapbox-traffic', {
@@ -67,8 +65,35 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
           });
         }
 
+        // Add traffic glow (pulsing neon effect)
+        if (!map.current.getLayer('traffic-glow')) {
+          map.current.addLayer(
+            {
+              id: 'traffic-glow',
+              type: 'line',
+              source: 'mapbox-traffic',
+              'source-layer': 'traffic',
+              filter: ['!=', 'congestion', 'low'], // Sadece trafik olan (yoğun) yerler
+              paint: {
+                'line-width': 12,
+                'line-blur': 8,
+                'line-color': [
+                  'match',
+                  ['get', 'congestion'],
+                  'moderate', '#FF9F0A', // Amber
+                  'heavy', '#FF453A', // Red
+                  'severe', '#BF5AF2', // Purple for severe
+                  'transparent',
+                ],
+                'line-opacity': 0.8,
+              },
+            },
+            'waterway-label' // Insert below labels
+          );
+        }
+
         if (!map.current.getLayer('traffic-lines')) {
-          // Add traffic lines (simple representation)
+          // Add traffic lines (core representation)
           map.current.addLayer(
             {
               id: 'traffic-lines',
@@ -76,22 +101,39 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
               source: 'mapbox-traffic',
               'source-layer': 'traffic',
               paint: {
-                'line-width': 3,
+                'line-width': 4,
                 'line-color': [
                   'match',
                   ['get', 'congestion'],
-                  'low', '#30D158', // Green
-                  'moderate', '#FF9F0A', // Amber
-                  'heavy', '#FF453A', // Red
-                  'severe', '#8B0000', // Dark Red
-                  'transparent', // Fallback
+                  'low', '#30D158',
+                  'moderate', '#FF9F0A',
+                  'heavy', '#FF453A',
+                  'severe', '#BF5AF2',
+                  'transparent',
                 ],
-                'line-opacity': 0.7,
+                'line-opacity': 0.9,
               },
             },
-            'waterway-label' // Insert below labels
+            'waterway-label'
           );
         }
+
+        // Start pulse animation
+        const animateGlow = (timestamp: number) => {
+          if (!map.current || !map.current.getLayer('traffic-glow')) return;
+          // Sine wave calculation for breathing effect
+          const progress = timestamp / 600; 
+          const opacity = 0.2 + (0.6 * (Math.sin(progress) + 1) / 2);
+          
+          try {
+            map.current.setPaintProperty('traffic-glow', 'line-opacity', opacity);
+          } catch (e) {
+            // map might be unmounting
+          }
+          
+          animationFrameId.current = requestAnimationFrame(animateGlow);
+        };
+        animationFrameId.current = requestAnimationFrame(animateGlow);
       }
 
       // Create a highly professional, Apple Maps / Tesla style location marker
@@ -108,6 +150,7 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
     });
 
     return () => {
+      if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
       map.current?.remove();
       map.current = null;
     };
