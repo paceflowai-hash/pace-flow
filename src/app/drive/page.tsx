@@ -88,7 +88,7 @@ export default function DrivePage() {
     });
   }, [trafficDensity]);
 
-  // Derived Local Area Delay
+  // Derived Local Area Delay & Speed
   const delayMinutes = Math.round(Math.pow(trafficDensity / 100, 2) * 20);
   const districtDelayMinutes = Math.round(Math.pow(districtDensity / 100, 2) * 30);
   const cityDelayMinutes = Math.round(Math.pow(cityDensity / 100, 2) * 45);
@@ -96,6 +96,9 @@ export default function DrivePage() {
   const delayPercentage = Math.max(2, (delayMinutes / 20) * 100);
   const districtDelayPercentage = Math.max(2, (districtDelayMinutes / 30) * 100);
   const cityDelayPercentage = Math.max(2, (cityDelayMinutes / 45) * 100);
+
+  // Average Area Speed (0% congestion = 60 km/h, 100% congestion = 5 km/h)
+  const averageAreaSpeed = Math.round(60 - (trafficDensity / 100) * 55);
 
   // ── Reverse Geocoding (Sokak İsmi) ──
   const [currentStreet, setCurrentStreet] = useState<string>('Konum Aranıyor...');
@@ -267,6 +270,19 @@ export default function DrivePage() {
           <span className="text-xs font-medium text-[var(--text-secondary)] tracking-widest uppercase">
             Pace/Flow
           </span>
+        </div>
+
+        {/* Average Area Speed (Center) */}
+        <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center">
+          <span className="text-[9px] text-white/50 uppercase tracking-[0.2em] mb-0.5">
+            Çevre Akış Hızı
+          </span>
+          <div className="flex items-baseline gap-1">
+            <span className="text-xl font-bold text-white tabular-nums tracking-tighter">
+              {averageAreaSpeed}
+            </span>
+            <span className="text-xs text-white/40 font-bold">km/s</span>
+          </div>
         </div>
 
         {/* PacingPoints */}

@@ -104,7 +104,7 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
                 'line-width': [
                   'match',
                   ['get', 'congestion'],
-                  'low', 1.5, // Çok ince yeşil
+                  'low', 1, // Tek bir ince çizgi
                   4 // Diğerleri kalın
                 ],
                 'line-color': [
