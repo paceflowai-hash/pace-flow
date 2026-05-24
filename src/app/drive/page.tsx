@@ -20,9 +20,9 @@ function getPaceStatus(current: number, target: number): PaceStatus {
 
 function getGlowColor(status: PaceStatus): string {
   switch (status) {
-    case 'speed_up': return 'rgba(48, 209, 88, 0.4)'; // Yeşil (Hızlan)
+    case 'speed_up': return 'rgba(48, 209, 88, 0.15)'; // Yeşil (Hızlan) - Hafifletildi
     case 'synced': return 'transparent'; // Hedefteyiz, sıfır ışık kirliliği
-    case 'slow_down': return 'rgba(255, 69, 58, 0.4)'; // Kırmızı (Yavaşla)
+    case 'slow_down': return 'rgba(255, 69, 58, 0.15)'; // Kırmızı (Yavaşla) - Hafifletildi
     default: return 'transparent';
   }
 }
