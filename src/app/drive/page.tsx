@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useGeolocation, useWakeLock, useDeviceMotion } from '@/lib/hooks';
 import { MapboxEngine } from '@/components/ui/MapboxEngine';
 import { EconomyDashboard } from '@/components/ui/EconomyDashboard';
+import { createClient } from '@/lib/supabase/client';
 
 // ─── Pace Status Logic ────────────────────────────────
 type PaceStatus = 'idle' | 'speed_up' | 'synced' | 'slow_down';
@@ -55,7 +56,7 @@ export default function DrivePage() {
   // Simulated target speed (will come from server in Faz 4)
   const [targetSpeed, setTargetSpeed] = useState(0);
   const [displaySpeed, setDisplaySpeed] = useState(0);
-  const [nearbyCount] = useState(0);
+  const [nearbyCount, setNearbyCount] = useState(0);
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [serverShock, setServerShock] = useState(0);
   const [simulatedShock, setSimulatedShock] = useState(false); // Manual trigger for Radar
@@ -170,6 +171,42 @@ export default function DrivePage() {
   }, []);
 
   const wsRef = useRef<WebSocket | null>(null);
+
+  // ── Network Presence (Supabase Realtime) ──
+  useEffect(() => {
+    if (!isSessionActive) return;
+
+    const supabase = createClient();
+    const sessionId = Math.random().toString(36).substring(7);
+
+    const channel = supabase.channel('paceflow_network', {
+      config: {
+        presence: {
+          key: sessionId,
+        },
+      },
+    });
+
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        // Ağdaki toplam aktif cihaz sayısı
+        const activeUsersCount = Object.keys(state).length;
+        // Kendimizi saymamak için -1 yapıyoruz
+        setNearbyCount(Math.max(0, activeUsersCount - 1));
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({
+            online_at: new Date().toISOString(),
+          });
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isSessionActive]);
 
   // ── Connect to FastAPI WebSocket (Faz 4: The Brain) ──
   useEffect(() => {
