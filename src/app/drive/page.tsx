@@ -260,7 +260,7 @@ export default function DrivePage() {
       )}
 
       {/* Top Bar */}
-      <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-6 py-4">
+      <div className="absolute top-6 left-0 right-0 z-30 flex items-center justify-between px-6">
         {/* Status */}
         <div className="flex items-center gap-2">
           <div 
@@ -272,16 +272,16 @@ export default function DrivePage() {
           </span>
         </div>
 
-        {/* Average Area Speed (Center) */}
-        <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center">
-          <span className="text-[9px] text-white/50 uppercase tracking-[0.2em] mb-0.5">
+        {/* Average Area Speed (Center Pill) */}
+        <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center bg-black/50 backdrop-blur-md border border-white/10 rounded-[2rem] px-8 py-2 shadow-2xl">
+          <span className="text-[8px] text-white/50 uppercase tracking-[0.2em] mb-0.5">
             Çevre Akış Hızı
           </span>
           <div className="flex items-baseline gap-1">
             <span className="text-xl font-bold text-white tabular-nums tracking-tighter">
               {averageAreaSpeed}
             </span>
-            <span className="text-xs text-white/40 font-bold">km/s</span>
+            <span className="text-[10px] text-white/40 font-bold">km/s</span>
           </div>
         </div>
 
