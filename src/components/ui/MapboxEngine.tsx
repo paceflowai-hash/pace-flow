@@ -15,6 +15,7 @@ interface MapboxEngineProps {
 export function MapboxEngine({ position }: MapboxEngineProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const marker = useRef<mapboxgl.Marker | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
 
   // Initialize Map
@@ -74,6 +75,14 @@ export function MapboxEngine({ position }: MapboxEngineProps) {
           'waterway-label' // Insert below labels
         );
       }
+
+      // Create a sleek glowing dot for the current location
+      const el = document.createElement('div');
+      el.className = 'w-4 h-4 bg-white rounded-full shadow-[0_0_20px_5px_rgba(48,209,88,0.6)] border-4 border-[var(--pace-synced)]';
+      
+      marker.current = new mapboxgl.Marker({ element: el })
+        .setLngLat([startLng, startLat])
+        .addTo(map.current!);
     });
 
     return () => {
@@ -105,6 +114,9 @@ export function MapboxEngine({ position }: MapboxEngineProps) {
       duration: 1000, // Smooth transition matching GPS 1/sec frequency
       easing: (t) => t, // Linear easing for continuous movement
     });
+
+    // Update marker position
+    marker.current?.setLngLat([position.longitude, position.latitude]);
   }, [position, mapLoaded]);
 
   return (
