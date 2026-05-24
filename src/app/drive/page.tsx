@@ -582,12 +582,14 @@ export default function DrivePage() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="mb-0 flex items-baseline justify-center"
+              className="mb-1 flex items-baseline justify-center gap-1.5"
             >
-              <span className="text-sm text-white/60 tabular-nums font-medium">
+              <span className="text-2xl text-white/90 tabular-nums font-black">
                 {Math.round(currentSpeed)}
               </span>
-              <span className="text-[10px] text-white/40 uppercase tracking-widest ml-1">mevcut</span>
+              <span className="text-[11px] text-white/60 uppercase tracking-[0.15em] font-bold">
+                MEVCUT HIZ
+              </span>
             </motion.div>
 
             {/* Target Speed */}
