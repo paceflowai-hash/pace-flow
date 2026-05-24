@@ -89,10 +89,10 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
                 } else {
                   // Sadece yolun içini (tek çizgi) mavi yap
                   map.current.setPaintProperty(layer.id, 'line-color', '#0A84FF'); // Neon mavi
-                  map.current.setPaintProperty(layer.id, 'line-opacity', 0.5); // Daha net görünüm
+                  map.current.setPaintProperty(layer.id, 'line-opacity', 0.6); // Biraz daha belirgin
                   try {
-                    // Kalınlığı iç çizgiye uygun yap
-                    map.current.setPaintProperty(layer.id, 'line-width', 1); 
+                    // Çizgiyi biraz daha kalınlaştır (kullanıcı talebi)
+                    map.current.setPaintProperty(layer.id, 'line-width', 2.5); 
                   } catch (e) {}
                 }
               }
