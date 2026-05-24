@@ -302,15 +302,15 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
   useEffect(() => {
     if (!map.current || !mapLoaded || !position) return;
 
-    // Calculate dynamic camera properties based on speed
-    // Speed increases -> pitch (tilt) increases and zoom increases
     const speed = position.speed_kmh;
     
-    // Zoom: 15 (stopped) to 18 (highway speeds)
-    const targetZoom = 15 + Math.min(speed / 40, 3);
+    // Apple Maps Style Dynamic Camera
+    // 0 km/h: Zoom 18 (Çok Yakın), Pitch 40 (Üstten Bakış)
+    // 120 km/h: Zoom 14.5 (Geniş Açı), Pitch 65 (İleriyi Gösteren Ufuk Çizgisi)
+    const normalizedSpeed = Math.min(speed / 120, 1); // 0.0 to 1.0
     
-    // Pitch: 45 (stopped) to 75 (highway speeds)
-    const targetPitch = 45 + Math.min(speed / 3, 30);
+    const targetZoom = 18 - (normalizedSpeed * 3.5);
+    const targetPitch = 40 + (normalizedSpeed * 25);
     
     // Bearing: Her zaman konumu takip et (dururken bile dönebilmesi için)
     const targetBearing = position.heading;
