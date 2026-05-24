@@ -61,8 +61,33 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
         const style = map.current.getStyle();
         if (style && style.layers) {
           for (const layer of style.layers) {
+            // Hide default traffic
             if (layer.id.includes('traffic')) {
               map.current.setLayoutProperty(layer.id, 'visibility', 'none');
+            }
+            
+            // Ultra-dark premium styling for non-traffic elements
+            try {
+              if (layer.type === 'background') {
+                map.current.setPaintProperty(layer.id, 'background-color', '#050505'); // Neredeyse zift siyah
+              }
+              if (layer.id.includes('water')) {
+                map.current.setPaintProperty(layer.id, 'fill-color', '#080808'); // Koyu sular
+              }
+              if (layer.id.includes('landuse') || layer.id.includes('building') || layer.id.includes('park') || layer.id.includes('structure')) {
+                if (layer.type === 'fill') {
+                  map.current.setPaintProperty(layer.id, 'fill-color', '#0c0c0c');
+                } else if (layer.type === 'fill-extrusion') {
+                  map.current.setPaintProperty(layer.id, 'fill-extrusion-color', '#0c0c0c');
+                }
+              }
+              // Normal yolları (trafiksiz) iyice karartalım
+              if (layer.id.includes('road') && layer.type === 'line' && !layer.id.includes('traffic')) {
+                // Sadece line-color destekleyenleri
+                map.current.setPaintProperty(layer.id, 'line-color', '#151515');
+              }
+            } catch (e) {
+              // Bazı katmanlarda bu özellikler olmayabilir, sessizce geç
             }
           }
         }
