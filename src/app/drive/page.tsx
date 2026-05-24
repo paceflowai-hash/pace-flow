@@ -176,35 +176,69 @@ export default function DrivePage() {
     if (!isSessionActive) return;
 
     // TODO: Change localhost to actual backend URL in production
-    const ws = new WebSocket('ws://localhost:8001/ws/telemetry');
-    wsRef.current = ws;
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8001/ws/telemetry';
+    
+    try {
+      const ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
 
-    ws.onopen = () => {
-      console.log('Connected to PaceFlow Backend (KWT Engine)');
-    };
+      ws.onopen = () => {
+        console.log('Connected to PaceFlow Backend (KWT Engine)');
+      };
 
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.target_speed !== undefined) {
-          setTargetSpeed(data.target_speed);
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.target_speed !== undefined) {
+            setTargetSpeed(data.target_speed);
+          }
+          if (data.shockwave_alert) {
+            setServerShock(Date.now());
+          }
+        } catch (e) {
+          console.error('Error parsing WS message', e);
         }
-        if (data.shockwave_alert) {
-          setServerShock(Date.now());
-        }
-      } catch (e) {
-        console.error('Error parsing WS message', e);
-      }
-    };
+      };
 
-    ws.onclose = () => {
-      console.log('Disconnected from PaceFlow Backend');
-    };
+      ws.onclose = () => {
+        console.log('Disconnected from PaceFlow Backend');
+      };
+      
+      ws.onerror = () => {
+        console.warn('WebSocket connection failed. Falling back to Standalone Simulation Mode.');
+      };
 
-    return () => {
-      ws.close();
-    };
+      return () => {
+        ws.close();
+      };
+    } catch(e) {
+      console.warn("WebSocket initialization failed:", e);
+    }
   }, [isSessionActive]);
+
+  // ── Standalone Simulation Mode (Fallback) ──
+  useEffect(() => {
+    if (!isSessionActive) return;
+    
+    // Saniyede bir kontrol et: Eğer WebSocket kapalıysa veya hata verdiyse hedefi biz hesaplayalım
+    const mockInterval = setInterval(() => {
+      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+        setTargetSpeed((prev) => {
+          // Basit yerel hız hesaplama mantığı: Trafik yoğunluğuna göre dinamik hız ver
+          const baseTarget = 80 - (trafficDensity * 0.5); // Yoğunluk 0 => 80 km/h, 100 => 30 km/h
+          const roundedTarget = Math.round(baseTarget);
+          
+          // Çok ani değişmesin, sadece anlamlı bir değişim varsa güncelle
+          if (prev === 0 || Math.abs(prev - roundedTarget) > 5) {
+            return roundedTarget;
+          }
+          return prev;
+        });
+      }
+    }, 2000);
+
+    return () => clearInterval(mockInterval);
+  }, [isSessionActive, trafficDensity]);
 
   // ── Send Telemetry Loop (1Hz) ──
   useEffect(() => {
