@@ -369,6 +369,7 @@ export default function DrivePage() {
         currentSpeed={currentSpeed}
         showShockAlert={showShockAlert}
         onTrafficDensityChange={setTrafficDensity}
+        onDirectionalDensityChange={setDirectionalDensity}
       />
 
       {/* Breathing Glow Overlay */}
@@ -390,16 +391,17 @@ export default function DrivePage() {
         />
       )}
 
-      {/* Top Bar */}
-      <div className="absolute top-6 left-0 right-0 z-30 flex items-center justify-between px-6">
-        {/* Status */}
-        <div className="flex items-center gap-2">
+      {/* Top Bar (Left HUD) */}
+      <div className="absolute top-6 left-6 z-30 flex flex-col gap-3 pointer-events-auto">
+        <TrafficRadar directionalDensity={directionalDensity} />
+        
+        <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/5 flex items-center gap-2 shadow-xl w-fit">
           <div 
-            className="w-2.5 h-2.5 rounded-full animate-pulse"
+            className="w-2 h-2 rounded-full animate-pulse"
             style={{ backgroundColor: getStatusDotColor(paceStatus) }}
           />
-          <span className="text-xs font-medium text-[var(--text-secondary)] tracking-widest uppercase shadow-md">
-            Pace/Flow
+          <span className="text-[10px] uppercase font-bold text-white tracking-widest">
+            {paceStatus === 'synced' ? 'KWT DEVREDE' : paceStatus === 'speed_up' ? 'HIZLANIN' : 'YAVAŞLAYIN'}
           </span>
         </div>
       </div>
