@@ -217,44 +217,56 @@ export default function DrivePage() {
         )}
       </AnimatePresence>
 
-      {/* Central HUD */}
-      <div className="relative z-20 flex flex-col items-center justify-center">
+      {/* HUD (Bottom Center) */}
+      <div className="absolute bottom-24 left-0 right-0 z-30 flex flex-col items-center justify-center pointer-events-none">
         
-        {/* Current Speed (small, above target) */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="mb-2"
-        >
-          <span className="text-lg text-[var(--text-secondary)] tabular-nums font-medium">
-            {Math.round(currentSpeed)}
-          </span>
-          <span className="text-xs text-[var(--text-tertiary)] ml-1">km/h</span>
-        </motion.div>
-
-        {/* Target Speed — THE BIG NUMBER */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="flex flex-col items-center"
-        >
-          <span
-            className="font-bold tabular-nums leading-none"
-            style={{
-              fontSize: 'clamp(96px, 20vw, 160px)',
-              color: targetSpeed === 0 ? 'var(--text-tertiary)' : 'white',
-              textShadow: targetSpeed > 0
-                ? `0 0 40px ${getGlowColor(paceStatus)}`
-                : 'none',
-            }}
+        {targetSpeed === 0 ? (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-3 bg-black/50 backdrop-blur-md border border-white/10 rounded-full px-5 py-2.5 shadow-2xl"
           >
-            {targetSpeed === 0 ? '—' : displaySpeed}
-          </span>
-          <span className="text-sm text-[var(--text-tertiary)] uppercase tracking-[0.3em] -mt-2">
-            {targetSpeed === 0 ? 'Hedef Bekleniyor' : 'km/h'}
-          </span>
-        </motion.div>
+            <div className="w-1.5 h-1.5 rounded-full bg-white/50 animate-pulse" />
+            <span className="text-[11px] text-white/80 uppercase tracking-[0.25em] font-medium">
+              Ağ Bekleniyor
+            </span>
+          </motion.div>
+        ) : (
+          <div className="flex flex-col items-center bg-black/40 backdrop-blur-sm border border-white/5 rounded-[2rem] px-8 py-4 shadow-2xl">
+            {/* Current Speed (small, above target) */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mb-0"
+            >
+              <span className="text-sm text-white/60 tabular-nums font-medium">
+                {Math.round(currentSpeed)}
+              </span>
+              <span className="text-[10px] text-white/40 uppercase tracking-widest ml-1">mevcut</span>
+            </motion.div>
+
+            {/* Target Speed */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex items-baseline gap-2"
+            >
+              <span
+                className="font-bold tabular-nums leading-none tracking-tighter"
+                style={{
+                  fontSize: '96px',
+                  color: 'white',
+                  textShadow: `0 0 40px ${getGlowColor(paceStatus)}`,
+                }}
+              >
+                {displaySpeed}
+              </span>
+              <span className="text-xs text-white/50 uppercase tracking-[0.2em] font-medium">
+                km/h
+              </span>
+            </motion.div>
+          </div>
+        )}
       </div>
 
       {/* Bottom Info Bar */}
