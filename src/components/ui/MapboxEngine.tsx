@@ -81,10 +81,14 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
                   map.current.setPaintProperty(layer.id, 'fill-extrusion-color', '#0c0c0c');
                 }
               }
-              // Normal yolları (trafiksiz) iyice karartalım
+              // Normal yolları (trafiksiz) Tron/Neon tarzı ince mavi çizgiler yapalım
               if (layer.id.includes('road') && layer.type === 'line' && !layer.id.includes('traffic')) {
-                // Sadece line-color destekleyenleri
-                map.current.setPaintProperty(layer.id, 'line-color', '#151515');
+                map.current.setPaintProperty(layer.id, 'line-color', '#0A84FF'); // Neon mavi
+                map.current.setPaintProperty(layer.id, 'line-opacity', 0.3); // Göz yormaması için şeffaf
+                try {
+                  // Bazı katmanlarda width override edilemeyebilir, o yüzden try içine alıyoruz
+                  map.current.setPaintProperty(layer.id, 'line-width', 0.5); 
+                } catch (e) {}
               }
             } catch (e) {
               // Bazı katmanlarda bu özellikler olmayabilir, sessizce geç
