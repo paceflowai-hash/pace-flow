@@ -296,14 +296,14 @@ export default function DrivePage() {
       <div className="absolute left-6 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center gap-3">
         
         {/* Bars Container */}
-        <div className="flex flex-col items-center pointer-events-none gap-4 bg-black/40 backdrop-blur-md border border-white/5 rounded-full px-3 py-6 shadow-2xl">
+        <div className="flex flex-col items-center pointer-events-none gap-4 bg-black/40 backdrop-blur-md border border-white/5 rounded-full px-2 py-6 shadow-2xl">
           
           {/* Local Area */}
         <div className="flex flex-col items-center">
           <span className="text-xs font-extrabold text-white/90 tabular-nums mb-2">
             {Math.round(trafficDensity)}%
           </span>
-          <div className="w-1.5 h-28 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-3">
+          <div className="w-1 h-28 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-3">
             <motion.div 
               className="w-full rounded-full animate-pulse"
               style={{ 
@@ -322,7 +322,7 @@ export default function DrivePage() {
         {/* District */}
         <div className="flex flex-col items-center">
           <span className="text-[11px] font-extrabold text-white/80 tabular-nums mb-1.5">{Math.round(districtDensity)}%</span>
-          <div className="w-1.5 h-20 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-2">
+          <div className="w-1 h-20 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-2">
             <motion.div 
               className="w-full rounded-full"
               style={{ backgroundColor: districtDensity > 70 ? '#FF453A' : districtDensity > 40 ? '#FF9F0A' : '#30D158' }}
@@ -336,7 +336,7 @@ export default function DrivePage() {
         {/* City */}
         <div className="flex flex-col items-center">
           <span className="text-[10px] font-extrabold text-white/70 tabular-nums mb-1">{Math.round(cityDensity)}%</span>
-          <div className="w-1 h-16 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-2">
+          <div className="w-0.5 h-16 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-2">
             <motion.div 
               className="w-full rounded-full"
               style={{ backgroundColor: cityDensity > 70 ? '#FF453A' : cityDensity > 40 ? '#FF9F0A' : '#30D158' }}
@@ -354,12 +354,12 @@ export default function DrivePage() {
       <div className="absolute right-6 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center gap-3">
         
         {/* Delay Bars Container */}
-        <div className="flex flex-col items-center pointer-events-none gap-4 bg-black/40 backdrop-blur-md border border-white/5 rounded-full px-3 py-6 shadow-2xl">
+        <div className="flex flex-col items-center pointer-events-none gap-4 bg-black/40 backdrop-blur-md border border-white/5 rounded-full px-2 py-6 shadow-2xl">
           
           {/* Local Delay */}
         <div className="flex flex-col items-center">
           <span className="text-xs font-extrabold text-white/90 tabular-nums mb-2">+{delayMinutes}dk</span>
-          <div className="w-1.5 h-28 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-3">
+          <div className="w-1 h-28 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-3">
             <motion.div 
               className="w-full rounded-full animate-pulse"
               style={{ 
@@ -376,7 +376,7 @@ export default function DrivePage() {
         {/* District Delay */}
         <div className="flex flex-col items-center">
           <span className="text-[11px] font-extrabold text-white/80 tabular-nums mb-1.5">+{districtDelayMinutes}dk</span>
-          <div className="w-1.5 h-20 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-2">
+          <div className="w-1 h-20 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-2">
             <motion.div 
               className="w-full rounded-full"
               style={{ backgroundColor: districtDelayMinutes > 15 ? '#FF453A' : districtDelayMinutes > 5 ? '#FF9F0A' : '#30D158' }}
@@ -390,7 +390,7 @@ export default function DrivePage() {
         {/* City Delay */}
         <div className="flex flex-col items-center">
           <span className="text-[10px] font-extrabold text-white/70 tabular-nums mb-1">+{cityDelayMinutes}dk</span>
-          <div className="w-1 h-16 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-2">
+          <div className="w-0.5 h-16 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-2">
             <motion.div 
               className="w-full rounded-full"
               style={{ backgroundColor: cityDelayMinutes > 20 ? '#FF453A' : cityDelayMinutes > 10 ? '#FF9F0A' : '#30D158' }}
