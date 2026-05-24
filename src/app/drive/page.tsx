@@ -512,7 +512,7 @@ export default function DrivePage() {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="flex items-baseline gap-2"
+              className="flex flex-col items-center justify-center -mt-2"
             >
               <span
                 className="font-bold tabular-nums leading-none tracking-tighter"
@@ -524,7 +524,7 @@ export default function DrivePage() {
               >
                 {displaySpeed}
               </span>
-              <span className="text-xs text-white/50 uppercase tracking-[0.2em] font-medium">
+              <span className="text-xs text-white/50 uppercase tracking-[0.2em] font-medium mt-1">
                 km/h
               </span>
             </motion.div>

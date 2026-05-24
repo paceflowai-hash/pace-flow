@@ -14,36 +14,22 @@ export function EconomyDashboard({ paceStatus, isDriving }: EconomyDashboardProp
   const [fuelSavedML, setFuelSavedML] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
 
-  // Load from local storage on mount
+  // Gamification Loop (Per Session)
   useEffect(() => {
     setIsMounted(true);
-    const savedPoints = localStorage.getItem('pace_points');
-    const savedFuel = localStorage.getItem('pace_fuel');
-    if (savedPoints) setPacePoints(parseInt(savedPoints, 10));
-    if (savedFuel) setFuelSavedML(parseFloat(savedFuel));
   }, []);
 
-  // Gamification Loop
   useEffect(() => {
-    // Masada test ederken isDriving kapalı olsa bile puan kazansın diye isDriving kuralını esnetiyorum.
-    // Sadece "synced" olması yeterli, KWT backend çalıştığında puan alacaktır.
-    if (paceStatus !== 'synced') return;
+    // Sadece sürüş halindeyken ve "synced" iken puan/yakıt kazansın.
+    if (!isDriving || paceStatus !== 'synced') return;
 
     const interval = setInterval(() => {
-      setPacePoints(prev => {
-        const newVal = prev + 5; // 5 points per second in synced mode
-        localStorage.setItem('pace_points', newVal.toString());
-        return newVal;
-      });
-      setFuelSavedML(prev => {
-        const newVal = prev + 0.12; // 0.12 mL per second saved
-        localStorage.setItem('pace_fuel', newVal.toString());
-        return newVal;
-      });
+      setPacePoints(prev => prev + 5); // 5 points per second in synced mode
+      setFuelSavedML(prev => prev + 0.12); // 0.12 mL per second saved
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [paceStatus]);
+  }, [paceStatus, isDriving]);
 
   if (!isMounted) return null;
 
