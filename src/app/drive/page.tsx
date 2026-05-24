@@ -18,7 +18,7 @@ function getPaceStatus(current: number, target: number): PaceStatus {
 
 function getGlowColor(status: PaceStatus): string {
   switch (status) {
-    case 'synced': return 'rgba(48, 209, 88, 0.4)';
+    case 'synced': return 'transparent'; // Yeşili tamamen kaldırdık, ekran siyah kalacak
     case 'warning': return 'rgba(255, 159, 10, 0.4)';
     case 'danger': return 'rgba(255, 69, 58, 0.4)';
     default: return 'transparent';
