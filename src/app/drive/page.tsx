@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useGeolocation, useWakeLock, useDeviceMotion } from '@/lib/hooks';
 import { MapboxEngine } from '@/components/ui/MapboxEngine';
 import { EconomyDashboard } from '@/components/ui/EconomyDashboard';
+import { TrafficRadar, DirectionalDensity } from '@/components/ui/TrafficRadar';
 import { createClient } from '@/lib/supabase/client';
 
 // ─── Pace Status Logic ────────────────────────────────
@@ -66,6 +67,7 @@ export default function DrivePage() {
   
   // Real-time Traffic Density from Mapbox Spatial Calculation
   const [trafficDensity, setTrafficDensity] = useState(0);
+  const [directionalDensity, setDirectionalDensity] = useState<DirectionalDensity | null>(null);
   const [districtDensity, setDistrictDensity] = useState(0);
   const [cityDensity, setCityDensity] = useState(0);
 

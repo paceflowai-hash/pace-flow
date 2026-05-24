@@ -8,12 +8,20 @@ import { GeoPosition } from '@/lib/hooks/useGeolocation';
 // Mapbox token required
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
+export interface DirectionalDensity {
+  front: number;
+  right: number;
+  back: number;
+  left: number;
+}
+
 interface MapboxEngineProps {
   position: GeoPosition | null;
   targetSpeed?: number;
   currentSpeed?: number;
   showShockAlert?: boolean;
   onTrafficDensityChange?: (density: number) => void;
+  onDirectionalDensityChange?: (dirs: DirectionalDensity) => void;
 }
 
 // ── Haversine Distance Calculation ──
@@ -29,6 +37,16 @@ function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon
   return R * c;
 }
 
+function getBearingFromLatLon(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const lat1Rad = lat1 * Math.PI / 180;
+  const lat2Rad = lat2 * Math.PI / 180;
+  const y = Math.sin(dLon) * Math.cos(lat2Rad);
+  const x = Math.cos(lat1Rad) * Math.sin(lat2Rad) - Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLon);
+  let brng = Math.atan2(y, x) * 180 / Math.PI;
+  return (brng + 360) % 360;
+}
+
 // ── Offset Calculation (Meters to LatLng) ──
 function getOffsetLatLng(lat: number, lng: number, distanceMeters: number, bearingDegrees: number): [number, number] {
   const R = 6378137; // Earth's radius in meters
@@ -37,7 +55,7 @@ function getOffsetLatLng(lat: number, lng: number, distanceMeters: number, beari
   return [lng + (dLng * 180 / Math.PI), lat + (dLat * 180 / Math.PI)];
 }
 
-export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, showShockAlert = false, onTrafficDensityChange }: MapboxEngineProps) {
+export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, showShockAlert = false, onTrafficDensityChange, onDirectionalDensityChange }: MapboxEngineProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const marker = useRef<mapboxgl.Marker | null>(null);
@@ -207,41 +225,14 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
             // map might be unmounting
           }
           
-          // --- Ambient Traffic Reflection (Single Forward Cone) ---
+          // --- Ambient Traffic Reflection is moved to Radar ---
           try {
             const forwardStop = document.getElementById('forwardConeStop');
-            const m = marker.current?.getLngLat();
-            
-            if (m && forwardStop && map.current) {
-              const pt = map.current.project(m);
-              
-              // İlerideki trafiği taramak için tek bir geniş ön kutu (forward bounding box)
-              // pt.y aracın konumu. 0 ise ekranın en üstü (ilerisi).
-              const forwardBbox: [mapboxgl.PointLike, mapboxgl.PointLike] = [
-                [pt.x - 100, Math.max(0, pt.y - 300)], 
-                [pt.x + 100, pt.y]
-              ];
-              
-              const getTrafficState = (bbox: [mapboxgl.PointLike, mapboxgl.PointLike]) => {
-                const features = map.current!.queryRenderedFeatures(bbox, { layers: ['traffic-glow', 'traffic-lines'] });
-                let maxLevel = 0;
-                let color = '#FFFFFF'; // Default white (clear)
-                let opacity = '0.3'; // Standart daha belirgin beyaz koni
-                for (const f of features) {
-                  const congestion = f.properties?.congestion;
-                  if (congestion === 'severe' && maxLevel < 4) { maxLevel = 4; color = '#BF5AF2'; opacity = '0.8'; }
-                  else if (congestion === 'heavy' && maxLevel < 3) { maxLevel = 3; color = '#FF453A'; opacity = '0.8'; }
-                  else if (congestion === 'moderate' && maxLevel < 2) { maxLevel = 2; color = '#FF9F0A'; opacity = '0.8'; }
-                }
-                return { color, opacity };
-              };
-              
-              const forwardState = getTrafficState(forwardBbox);
-              
-              forwardStop.setAttribute('stop-color', forwardState.color);
-              forwardStop.setAttribute('stop-opacity', forwardState.opacity);
-              const forwardFade = document.getElementById('forwardConeFade');
-              if (forwardFade) forwardFade.setAttribute('stop-color', forwardState.color);
+            const forwardFade = document.getElementById('forwardConeFade');
+            if (forwardStop && forwardFade) {
+              forwardStop.setAttribute('stop-color', '#FFFFFF');
+              forwardStop.setAttribute('stop-opacity', '0.3');
+              forwardFade.setAttribute('stop-color', '#FFFFFF');
             }
           } catch (e) {
             // Ignore spatial query errors
@@ -397,7 +388,11 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
 
         let totalWeight = 0;
         let weightedCongestion = 0;
-        const newTrafficBuildings = new Map<string | number, string>();
+
+        let dFront = 0, dFrontWeight = 0;
+        let dRight = 0, dRightWeight = 0;
+        let dBack = 0, dBackWeight = 0;
+        let dLeft = 0, dLeftWeight = 0;
 
         features.forEach((f) => {
           const congestion = f.properties?.congestion;
@@ -431,16 +426,39 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
           if (distKm > 3) return;
           
           // Spatial Weighting: Inverse Square Law
-          // Closer roads (0.1km) have massive weight (e.g., 100)
-          // Further roads (3km) have very small weight (e.g., ~0.1)
           const weight = 1 / (1 + Math.pow(distKm * 3, 2));
 
           weightedCongestion += congestionValue * weight;
           totalWeight += weight;
+
+          // Calculate Directional
+          const bearing = getBearingFromLatLon(position.latitude, position.longitude, lat, lng);
+          const relativeAngle = (bearing - position.heading + 360) % 360;
+
+          if (relativeAngle >= 315 || relativeAngle < 45) {
+            dFront += congestionValue * weight; dFrontWeight += weight;
+          } else if (relativeAngle >= 45 && relativeAngle < 135) {
+            dRight += congestionValue * weight; dRightWeight += weight;
+          } else if (relativeAngle >= 135 && relativeAngle < 225) {
+            dBack += congestionValue * weight; dBackWeight += weight;
+          } else {
+            dLeft += congestionValue * weight; dLeftWeight += weight;
+          }
         });
 
-        const finalDensity = totalWeight > 0 ? Math.round(weightedCongestion / totalWeight) : 0;
-        onTrafficDensityChange(finalDensity);
+        if (onTrafficDensityChange) {
+          const finalDensity = totalWeight > 0 ? Math.round(weightedCongestion / totalWeight) : 0;
+          onTrafficDensityChange(finalDensity);
+        }
+
+        if (onDirectionalDensityChange) {
+          onDirectionalDensityChange({
+            front: dFrontWeight > 0 ? Math.round(dFront / dFrontWeight) : 0,
+            right: dRightWeight > 0 ? Math.round(dRight / dRightWeight) : 0,
+            back: dBackWeight > 0 ? Math.round(dBack / dBackWeight) : 0,
+            left: dLeftWeight > 0 ? Math.round(dLeft / dLeftWeight) : 0,
+          });
+        }
 
       } catch (err) {
         console.error("Traffic calculation error:", err);
