@@ -56,8 +56,16 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
     map.current.on('load', () => {
       setMapLoaded(true);
 
-      // Add traffic layer if supported by the style
       if (map.current) {
+        // Hide default Mapbox traffic layers to prevent the default green roads from showing
+        const style = map.current.getStyle();
+        if (style && style.layers) {
+          for (const layer of style.layers) {
+            if (layer.id.includes('traffic')) {
+              map.current.setLayoutProperty(layer.id, 'visibility', 'none');
+            }
+          }
+        }
         if (!map.current.getSource('mapbox-traffic')) {
           map.current.addSource('mapbox-traffic', {
             type: 'vector',
