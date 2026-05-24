@@ -596,17 +596,6 @@ export default function DrivePage() {
             <span className="text-[9px] text-white/30 uppercase tracking-widest">
               {position.heading > 0 ? `${Math.round(position.heading)}°` : 'YÖN BEKLENİYOR'}
             </span>
-            
-            {/* Demo Sudden Brake Trigger */}
-            <button 
-              onClick={triggerSuddenBrake}
-              className="ml-4 w-8 h-8 rounded-full bg-white/5 border border-white/10 backdrop-blur-md flex items-center justify-center hover:bg-white/10 transition-colors"
-              title="Test Ani Fren Radarı"
-            >
-              <svg className="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </button>
           </div>
         )}
       </div>

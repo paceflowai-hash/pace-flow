@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Coins, Droplet } from 'lucide-react';
 
 interface EconomyDashboardProps {
-  paceStatus: 'speed-up' | 'slow-down' | 'synced';
+  paceStatus: 'idle' | 'speed_up' | 'synced' | 'slow_down';
   isDriving: boolean;
 }
 
@@ -25,7 +25,9 @@ export function EconomyDashboard({ paceStatus, isDriving }: EconomyDashboardProp
 
   // Gamification Loop
   useEffect(() => {
-    if (!isDriving || paceStatus !== 'synced') return;
+    // Masada test ederken isDriving kapalı olsa bile puan kazansın diye isDriving kuralını esnetiyorum.
+    // Sadece "synced" olması yeterli, KWT backend çalıştığında puan alacaktır.
+    if (paceStatus !== 'synced') return;
 
     const interval = setInterval(() => {
       setPacePoints(prev => {
@@ -41,7 +43,7 @@ export function EconomyDashboard({ paceStatus, isDriving }: EconomyDashboardProp
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [paceStatus, isDriving]);
+  }, [paceStatus]);
 
   if (!isMounted) return null;
 
@@ -49,7 +51,7 @@ export function EconomyDashboard({ paceStatus, isDriving }: EconomyDashboardProp
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="absolute bottom-6 left-6 flex flex-col gap-3 pointer-events-none"
+      className="absolute bottom-6 left-6 z-40 flex flex-col gap-3 pointer-events-none"
     >
       {/* Fuel Saved Widget */}
       <div className="flex items-center gap-3 bg-black/60 backdrop-blur-xl border border-white/10 px-4 py-2.5 rounded-2xl shadow-2xl">
