@@ -47,6 +47,7 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
   const [mapLoaded, setMapLoaded] = useState(false);
   const mapLoadedRef = useRef(false);
   const animationFrameId = useRef<number | null>(null);
+  const activeRedBuildingsRef = useRef<Set<string | number>>(new Set());
   // Initialize Map
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
@@ -103,10 +104,10 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
                 } else {
                   // Sadece yolun içini beyaz yapıyoruz ama kalınlığı azaltıp zarifleştiriyoruz
                   map.current.setPaintProperty(layer.id, 'line-color', '#FFFFFF'); 
-                  map.current.setPaintProperty(layer.id, 'line-opacity', 0.6); 
+                  map.current.setPaintProperty(layer.id, 'line-opacity', 0.8); 
                   try {
-                    // Kullanıcı talebi: Beyaz çizgileri çok ince (zarif) yap
-                    map.current.setPaintProperty(layer.id, 'line-width', 0.8); 
+                    // Kullanıcı talebi: Beyaz çizgileri daha belirgin (kalın) yap
+                    map.current.setPaintProperty(layer.id, 'line-width', 2); 
                   } catch (e) {}
                 }
               }
@@ -133,7 +134,12 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
               type: 'fill-extrusion',
               minzoom: 14,
               paint: {
-                'fill-extrusion-color': '#0c0c0c',
+                'fill-extrusion-color': [
+                  'case',
+                  ['boolean', ['feature-state', 'isTrafficRed'], false],
+                  '#8B0000', // Koyu kırmızımsı parlaklık
+                  '#0c0c0c'  // Varsayılan siyah
+                ],
                 'fill-extrusion-height': ['get', 'height'],
                 'fill-extrusion-base': ['get', 'min_height'],
                 'fill-extrusion-opacity': 0.8,
@@ -153,8 +159,8 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
               'source-layer': 'traffic',
               filter: ['!=', 'congestion', 'low'], // Sadece trafik olan (yoğun) yerler
               paint: {
-                'line-width': 40,
-                'line-blur': 20,
+                'line-width': 60,
+                'line-blur': 15,
                 'line-color': [
                   'match',
                   ['get', 'congestion'],
@@ -440,6 +446,7 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
 
         let totalWeight = 0;
         let weightedCongestion = 0;
+        const newRedBuildings = new Set<string | number>();
 
         features.forEach((f) => {
           const congestion = f.properties?.congestion;
@@ -466,6 +473,34 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
             return;
           }
 
+          // Kırmızı Binalar Mantığı: 30 Metre (ekranda yaklaşık 25 piksel) yakındaki binaları bul
+          if (congestion === 'heavy' || congestion === 'severe') {
+            try {
+              const processPoint = (coord: number[]) => {
+                if (!map.current) return;
+                const sp = map.current.project([coord[0], coord[1]]);
+                const padding = 25; // Ekranda 25 piksellik bir çevre (~30 metre)
+                const bbox = [
+                  [sp.x - padding, sp.y - padding],
+                  [sp.x + padding, sp.y + padding]
+                ] as [mapboxgl.PointLike, mapboxgl.PointLike];
+                const bldgs = map.current.queryRenderedFeatures(bbox, { layers: ['3d-buildings'] });
+                bldgs.forEach(b => {
+                  if (b.id !== undefined) newRedBuildings.add(b.id);
+                });
+              };
+
+              if (typeof coords[0][0] === 'number') {
+                if (coords.length > 0) processPoint(coords[0]);
+                if (coords.length > 1) processPoint(coords[Math.floor(coords.length / 2)]);
+                if (coords.length > 2) processPoint(coords[coords.length - 1]);
+              } else if (typeof coords[0][0][0] === 'number') {
+                if (coords[0].length > 0) processPoint(coords[0][0]);
+                if (coords[0].length > 1) processPoint(coords[0][Math.floor(coords[0].length / 2)]);
+              }
+            } catch(e) {}
+          }
+
           // Distance from user to this specific road segment
           const distKm = getDistanceFromLatLonInKm(position.latitude, position.longitude, lat, lng);
           
@@ -483,6 +518,23 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
 
         const finalDensity = totalWeight > 0 ? Math.round(weightedCongestion / totalWeight) : 0;
         onTrafficDensityChange(finalDensity);
+
+        // Feature State güncellemeleri
+        if (map.current) {
+          // Eski kırmızı binaları normale döndür
+          activeRedBuildingsRef.current.forEach(id => {
+            if (!newRedBuildings.has(id)) {
+              map.current!.setFeatureState({ source: 'composite', sourceLayer: 'building', id }, { isTrafficRed: false });
+            }
+          });
+          // Yeni binaları kızart
+          newRedBuildings.forEach(id => {
+            if (!activeRedBuildingsRef.current.has(id)) {
+              map.current!.setFeatureState({ source: 'composite', sourceLayer: 'building', id }, { isTrafficRed: true });
+            }
+          });
+          activeRedBuildingsRef.current = newRedBuildings;
+        }
 
       } catch (err) {
         console.error("Traffic calculation error:", err);
