@@ -205,20 +205,29 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
               // İlerideki trafiği (ekranın üst kısmına doğru geniş bir alan) taramak için
               // pt.y aracın konumu. 0 ise ekranın en üstü (ilerisi).
               // Sol ilerisi için: Aracın solundan 400px sola, ve ekranın en üstüne kadar olan kutu.
-              const leftBbox: [mapboxgl.PointLike, mapboxgl.PointLike] = [[Math.max(0, pt.x - 400), 0], [pt.x, pt.y]];
-              // Sağ ilerisi için: Aracın sağından 400px sağa, ve ekranın en üstüne kadar olan kutu.
-              const rightBbox: [mapboxgl.PointLike, mapboxgl.PointLike] = [[pt.x, 0], [pt.x + 400, pt.y]];
+              // 1KM tarama alanı (Zoom 15 seviyesinde ortalama 150-200 piksel)
+              // Sol Koni için: Aracın tam sol-ön çaprazı (100px sola, 200px ileriye kadar dar bir tünel)
+              const leftBbox: [mapboxgl.PointLike, mapboxgl.PointLike] = [
+                [pt.x - 100, Math.max(0, pt.y - 200)], 
+                [pt.x - 5, pt.y]
+              ];
+              // Sağ Koni için: Aracın tam sağ-ön çaprazı (100px sağa, 200px ileriye kadar dar bir tünel)
+              const rightBbox: [mapboxgl.PointLike, mapboxgl.PointLike] = [
+                [pt.x + 5, Math.max(0, pt.y - 200)], 
+                [pt.x + 100, pt.y]
+              ];
               
               const getTrafficState = (bbox: [mapboxgl.PointLike, mapboxgl.PointLike]) => {
                 const features = map.current!.queryRenderedFeatures(bbox, { layers: ['traffic-glow', 'traffic-lines'] });
                 let maxLevel = 0;
                 let color = '#FFFFFF'; // Default white (clear)
-                let opacity = '0.2'; // Çok hafif beyaz ışık
+                let opacity = '0.15'; // Çok hafif beyaz ışık
                 for (const f of features) {
                   const congestion = f.properties?.congestion;
-                  if (congestion === 'severe' && maxLevel < 4) { maxLevel = 4; color = '#BF5AF2'; opacity = '0.9'; }
-                  else if (congestion === 'heavy' && maxLevel < 3) { maxLevel = 3; color = '#FF453A'; opacity = '0.7'; }
-                  else if (congestion === 'moderate' && maxLevel < 2) { maxLevel = 2; color = '#FF9F0A'; opacity = '0.5'; }
+                  // Opacity değerlerini yüksek tutuyoruz ki yoldaki trafik rengiyle BİREBİR aynı görünsün
+                  if (congestion === 'severe' && maxLevel < 4) { maxLevel = 4; color = '#BF5AF2'; opacity = '0.8'; }
+                  else if (congestion === 'heavy' && maxLevel < 3) { maxLevel = 3; color = '#FF453A'; opacity = '0.8'; }
+                  else if (congestion === 'moderate' && maxLevel < 2) { maxLevel = 2; color = '#FF9F0A'; opacity = '0.8'; }
                 }
                 return { color, opacity };
               };
