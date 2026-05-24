@@ -394,16 +394,6 @@ export default function DrivePage() {
       {/* Top Bar (Left HUD) */}
       <div className="absolute top-6 left-6 z-30 flex flex-col gap-3 pointer-events-auto">
         <TrafficRadar directionalDensity={directionalDensity} />
-        
-        <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/5 flex items-center gap-2 shadow-xl w-fit">
-          <div 
-            className="w-2 h-2 rounded-full animate-pulse"
-            style={{ backgroundColor: getStatusDotColor(paceStatus) }}
-          />
-          <span className="text-[10px] uppercase font-bold text-white tracking-widest">
-            {paceStatus === 'synced' ? 'KWT DEVREDE' : paceStatus === 'speed_up' ? 'HIZLANIN' : 'YAVAŞLAYIN'}
-          </span>
-        </div>
       </div>
 
       {/* Gamification: Economy Dashboard (Absolute Top Right) */}
@@ -576,12 +566,23 @@ export default function DrivePage() {
             </span>
           </motion.div>
         ) : (
-          <div className="flex flex-col items-center bg-black/40 backdrop-blur-sm border border-white/5 rounded-[2rem] px-8 py-4 shadow-2xl">
+          <div className="flex flex-col items-center bg-black/40 backdrop-blur-sm border border-white/5 rounded-[2rem] px-8 py-4 shadow-2xl relative">
+            {/* Status Badge (Hızlanın / Yavaşlayın) */}
+            <div className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-2 shadow-xl mb-2">
+              <div 
+                className="w-2 h-2 rounded-full animate-pulse"
+                style={{ backgroundColor: getStatusDotColor(paceStatus) }}
+              />
+              <span className="text-[10px] uppercase font-bold text-white tracking-widest">
+                {paceStatus === 'synced' ? 'KWT DEVREDE' : paceStatus === 'speed_up' ? 'HIZLANIN' : 'YAVAŞLAYIN'}
+              </span>
+            </div>
+
             {/* Current Speed (small, above target) */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="mb-0"
+              className="mb-0 flex items-baseline justify-center"
             >
               <span className="text-sm text-white/60 tabular-nums font-medium">
                 {Math.round(currentSpeed)}
