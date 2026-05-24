@@ -363,24 +363,29 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
     marker.current?.setRotation(markerRotation);
 
     // Update Pace Rabbit (Ghost Car)
-    if (targetSpeed > 0 && rabbitMarker.current) {
-      // Rabbit is a few meters ahead based on speed difference
+    // Sadece hareket halindeyken (hız > 5) tavşanı göster, yoksa üçgenin ortasında parlayıp kafa karıştırıyor.
+    if (targetSpeed > 0 && currentSpeed > 5 && rabbitMarker.current) {
       const speedDiff = targetSpeed - currentSpeed;
-      const distanceMeters = 50 + (speedDiff * 2); // default 50m ahead, increases if we are too slow
-      const rabbitPos = getOffsetLatLng(position.latitude, position.longitude, Math.max(20, distanceMeters), position.heading);
+      // Tavşanı en az 250 metre ileri atalım ki üçgenin (160px) altından çıksın
+      const distanceMeters = 250 + (speedDiff * 5); 
+      const rabbitPos = getOffsetLatLng(position.latitude, position.longitude, Math.max(150, distanceMeters), position.heading);
       rabbitMarker.current.setLngLat(rabbitPos);
     } else {
-      // Hide rabbit if no target speed
       rabbitMarker.current?.setLngLat([0, 0]);
     }
 
     // Update Hive Vehicles (Sürü Modu)
     hiveMarkers.current.forEach((hm, idx) => {
-      // Randomly offset them by 20-50 meters around the user
-      const rDist = 30 + (idx * 15) + (Math.sin(Date.now() / 2000 + idx) * 10);
-      const rBearing = position.heading + (idx % 2 === 0 ? 90 : -90) + (Math.cos(Date.now() / 3000 + idx) * 20);
-      const hivePos = getOffsetLatLng(position.latitude, position.longitude, rDist, rBearing);
-      hm.setLngLat(hivePos);
+      if (currentSpeed > 5) {
+        // Hız 5'ten büyükse etrafta kovan araçları dolsun (en az 100 metre uzakta)
+        const rDist = 120 + (idx * 50) + (Math.sin(Date.now() / 2000 + idx) * 20);
+        const rBearing = position.heading + (idx % 2 === 0 ? 90 : -90) + (Math.cos(Date.now() / 3000 + idx) * 30);
+        const hivePos = getOffsetLatLng(position.latitude, position.longitude, rDist, rBearing);
+        hm.setLngLat(hivePos);
+      } else {
+        // Dururken gizle
+        hm.setLngLat([0, 0]);
+      }
     });
 
     // Update Shock Wave Radar
