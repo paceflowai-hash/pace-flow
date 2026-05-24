@@ -318,9 +318,9 @@ export default function DrivePage() {
       )}
 
       {/* Top Bar */}
-      <div className="absolute top-12 left-0 right-0 z-50 flex items-start justify-between px-6 pt-safe-top">
+      <div className="absolute top-6 left-0 right-0 z-30 flex items-center justify-between px-6">
         {/* Status */}
-        <div className="flex items-center gap-2 mt-1.5">
+        <div className="flex items-center gap-2">
           <div 
             className="w-2.5 h-2.5 rounded-full animate-pulse"
             style={{ backgroundColor: getStatusDotColor(paceStatus) }}
@@ -329,10 +329,10 @@ export default function DrivePage() {
             Pace/Flow
           </span>
         </div>
-
-        {/* Economy Dashboard (Right Side) */}
-        <EconomyDashboard paceStatus={paceStatus} isDriving={isSessionActive && currentSpeed > 5} />
       </div>
+
+      {/* Gamification: Economy Dashboard (Absolute Top Right) */}
+      <EconomyDashboard paceStatus={paceStatus} isDriving={isSessionActive && currentSpeed > 5} />
 
       {/* Traffic Density Cluster (Left Vertical) */}
       <div className="absolute left-6 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center gap-3">

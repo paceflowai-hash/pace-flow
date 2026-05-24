@@ -35,7 +35,7 @@ export function EconomyDashboard({ paceStatus, isDriving }: EconomyDashboardProp
     <motion.div 
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col items-end gap-2 pointer-events-none"
+      className="absolute top-6 right-6 z-50 flex flex-col items-end gap-2 pointer-events-none"
     >
       {/* Fuel Saved Widget */}
       <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-md border border-emerald-500/20 px-3 py-1.5 rounded-full shadow-lg">
