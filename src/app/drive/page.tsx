@@ -584,7 +584,15 @@ export default function DrivePage() {
               animate={{ opacity: 1 }}
               className="mb-1 flex items-baseline justify-center gap-1.5"
             >
-              <span className="text-2xl text-white/90 tabular-nums font-black">
+              <span 
+                className={`text-3xl tabular-nums font-black transition-colors duration-500 ${
+                  paceStatus === 'speed_up' 
+                    ? 'text-[#30D158] drop-shadow-[0_0_12px_rgba(48,209,88,0.5)]' 
+                    : paceStatus === 'slow_down' 
+                      ? 'text-[#FF453A] drop-shadow-[0_0_12px_rgba(255,69,58,0.5)]' 
+                      : 'text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]'
+                } ${paceStatus === 'slow_down' && targetSpeed > 0 && (currentSpeed / targetSpeed) > 1.15 ? 'animate-[pulse_0.5s_ease-in-out_infinite]' : ''}`}
+              >
                 {Math.round(currentSpeed)}
               </span>
               <span className="text-[11px] text-white/60 uppercase tracking-[0.15em] font-bold">
