@@ -202,13 +202,12 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
             if (m && leftStop && rightStop && map.current) {
               const pt = map.current.project(m);
               
-              // Map rotates with vehicle, so 'Left' is always screen -x, and 'Right' is +x.
-              // We check slightly ahead (-y) and to the sides.
-              const L_x = pt.x - 60; const L_y = pt.y - 60;
-              const R_x = pt.x + 60; const R_y = pt.y - 60;
-              
-              const leftBbox: [mapboxgl.PointLike, mapboxgl.PointLike] = [[L_x - 15, L_y - 15], [L_x + 15, L_y + 15]];
-              const rightBbox: [mapboxgl.PointLike, mapboxgl.PointLike] = [[R_x - 15, R_y - 15], [R_x + 15, R_y + 15]];
+              // İlerideki trafiği (ekranın üst kısmına doğru geniş bir alan) taramak için
+              // pt.y aracın konumu. 0 ise ekranın en üstü (ilerisi).
+              // Sol ilerisi için: Aracın solundan 400px sola, ve ekranın en üstüne kadar olan kutu.
+              const leftBbox: [mapboxgl.PointLike, mapboxgl.PointLike] = [[Math.max(0, pt.x - 400), 0], [pt.x, pt.y]];
+              // Sağ ilerisi için: Aracın sağından 400px sağa, ve ekranın en üstüne kadar olan kutu.
+              const rightBbox: [mapboxgl.PointLike, mapboxgl.PointLike] = [[pt.x, 0], [pt.x + 400, pt.y]];
               
               const getTrafficColor = (bbox: [mapboxgl.PointLike, mapboxgl.PointLike]) => {
                 const features = map.current!.queryRenderedFeatures(bbox, { layers: ['traffic-glow', 'traffic-lines'] });
