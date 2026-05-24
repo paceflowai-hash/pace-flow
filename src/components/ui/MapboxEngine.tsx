@@ -148,13 +148,28 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
 
       // Create a highly professional, Apple Maps / Tesla style location marker
       const el = document.createElement('div');
-      el.className = 'relative flex items-center justify-center w-10 h-10';
+      el.className = 'relative flex items-center justify-center w-12 h-12';
       el.innerHTML = `
         <div class="absolute inset-0 bg-[#0A84FF] rounded-full opacity-20 animate-ping" style="animation-duration: 3s;"></div>
-        <div class="relative w-4 h-4 bg-[#0A84FF] rounded-full border-[2.5px] border-white shadow-[0_2px_10px_rgba(0,0,0,0.5)]"></div>
+        
+        <!-- Directional Cone -->
+        <svg class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[90%] pointer-events-none" width="40" height="40" viewBox="0 0 40 40">
+          <defs>
+            <linearGradient id="coneGradient" x1="0%" y1="100%" x2="0%" y2="0%">
+              <stop offset="0%" stop-color="#0A84FF" stop-opacity="0.8" />
+              <stop offset="100%" stop-color="#0A84FF" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+          <polygon points="20,40 5,0 35,0" fill="url(#coneGradient)" />
+        </svg>
+
+        <div class="relative z-10 w-4 h-4 bg-[#0A84FF] rounded-full border-[2.5px] border-white shadow-[0_2px_10px_rgba(0,0,0,0.5)]"></div>
       `;
       
-      marker.current = new mapboxgl.Marker({ element: el })
+      marker.current = new mapboxgl.Marker({ 
+        element: el,
+        rotationAlignment: 'viewport'
+      })
         .setLngLat([startLng, startLat])
         .addTo(map.current!);
     });
@@ -180,18 +195,27 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
     
     // Pitch: 45 (stopped) to 75 (highway speeds)
     const targetPitch = 45 + Math.min(speed / 3, 30);
+    
+    // Bearing: 0 (north) if stopped, align with heading if moving fast
+    const targetBearing = speed > 5 ? position.heading : map.current.getBearing();
 
+    // Directional Marker Rotation (Google Maps Style)
+    // If map is rotated to heading, cone points UP (0deg).
+    // If map is stationary, cone rotates to show heading relative to map.
+    const markerRotation = position.heading - targetBearing;
+    
     map.current.easeTo({
       center: [position.longitude, position.latitude],
-      bearing: position.heading,
       zoom: targetZoom,
       pitch: targetPitch,
-      duration: 1000, // Smooth transition matching GPS 1/sec frequency
-      easing: (t) => t, // Linear easing for continuous movement
+      bearing: targetBearing,
+      duration: 1000,
+      easing: (t) => t * (2 - t),
     });
 
-    // Update marker position
+    // Update marker position and rotation
     marker.current?.setLngLat([position.longitude, position.latitude]);
+    marker.current?.setRotation(markerRotation);
   }, [position, mapLoaded]);
 
   // ── Traffic Density Real-time Spatial Calculation ──
