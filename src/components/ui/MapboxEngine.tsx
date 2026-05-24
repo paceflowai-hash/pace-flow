@@ -209,24 +209,32 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
               // Sağ ilerisi için: Aracın sağından 400px sağa, ve ekranın en üstüne kadar olan kutu.
               const rightBbox: [mapboxgl.PointLike, mapboxgl.PointLike] = [[pt.x, 0], [pt.x + 400, pt.y]];
               
-              const getTrafficColor = (bbox: [mapboxgl.PointLike, mapboxgl.PointLike]) => {
+              const getTrafficState = (bbox: [mapboxgl.PointLike, mapboxgl.PointLike]) => {
                 const features = map.current!.queryRenderedFeatures(bbox, { layers: ['traffic-glow', 'traffic-lines'] });
                 let maxLevel = 0;
-                let color = '#0A84FF'; // Default blue (clear)
+                let color = '#FFFFFF'; // Default white (clear)
+                let opacity = '0.2'; // Çok hafif beyaz ışık
                 for (const f of features) {
                   const congestion = f.properties?.congestion;
-                  if (congestion === 'severe' && maxLevel < 4) { maxLevel = 4; color = '#BF5AF2'; }
-                  else if (congestion === 'heavy' && maxLevel < 3) { maxLevel = 3; color = '#FF453A'; }
-                  else if (congestion === 'moderate' && maxLevel < 2) { maxLevel = 2; color = '#FF9F0A'; }
+                  if (congestion === 'severe' && maxLevel < 4) { maxLevel = 4; color = '#BF5AF2'; opacity = '0.9'; }
+                  else if (congestion === 'heavy' && maxLevel < 3) { maxLevel = 3; color = '#FF453A'; opacity = '0.7'; }
+                  else if (congestion === 'moderate' && maxLevel < 2) { maxLevel = 2; color = '#FF9F0A'; opacity = '0.5'; }
                 }
-                return color;
+                return { color, opacity };
               };
               
-              const leftColor = getTrafficColor(leftBbox);
-              const rightColor = getTrafficColor(rightBbox);
+              const leftState = getTrafficState(leftBbox);
+              const rightState = getTrafficState(rightBbox);
               
-              leftStop.setAttribute('stop-color', leftColor);
-              rightStop.setAttribute('stop-color', rightColor);
+              leftStop.setAttribute('stop-color', leftState.color);
+              leftStop.setAttribute('stop-opacity', leftState.opacity);
+              const leftFade = document.getElementById('leftConeFade');
+              if (leftFade) leftFade.setAttribute('stop-color', leftState.color);
+
+              rightStop.setAttribute('stop-color', rightState.color);
+              rightStop.setAttribute('stop-opacity', rightState.opacity);
+              const rightFade = document.getElementById('rightConeFade');
+              if (rightFade) rightFade.setAttribute('stop-color', rightState.color);
             }
           } catch (e) {
             // Ignore spatial query errors
@@ -241,18 +249,18 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
       const el = document.createElement('div');
       el.className = 'relative flex items-center justify-center w-24 h-24';
       el.innerHTML = `
-        <div class="absolute inset-0 bg-[#0A84FF] rounded-full opacity-10 animate-ping" style="animation-duration: 3s;"></div>
+        <div class="absolute inset-0 bg-[#FFFFFF] rounded-full opacity-10 animate-ping" style="animation-duration: 3s;"></div>
         
         <!-- Directional Cone (Split Left/Right for ambient reflection) -->
         <svg class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[85%] pointer-events-none" width="100" height="100" viewBox="0 0 100 100">
           <defs>
             <linearGradient id="leftConeGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-              <stop id="leftConeStop" offset="0%" stop-color="#0A84FF" stop-opacity="0.8" />
-              <stop offset="100%" stop-color="#0A84FF" stop-opacity="0" />
+              <stop id="leftConeStop" offset="0%" stop-color="#FFFFFF" stop-opacity="0.2" />
+              <stop id="leftConeFade" offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
             </linearGradient>
             <linearGradient id="rightConeGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-              <stop id="rightConeStop" offset="0%" stop-color="#0A84FF" stop-opacity="0.8" />
-              <stop offset="100%" stop-color="#0A84FF" stop-opacity="0" />
+              <stop id="rightConeStop" offset="0%" stop-color="#FFFFFF" stop-opacity="0.2" />
+              <stop id="rightConeFade" offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
             </linearGradient>
           </defs>
           <!-- Left Cone Half -->
@@ -261,7 +269,7 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
           <polygon points="50,100 50,0 85,0" fill="url(#rightConeGrad)" />
         </svg>
 
-        <div class="relative z-10 w-5 h-5 bg-[#0A84FF] rounded-full border-[3px] border-white shadow-[0_2px_15px_rgba(0,0,0,0.8)]"></div>
+        <div class="relative z-10 w-5 h-5 bg-[#FFFFFF] rounded-full border-[3px] border-[#0A84FF] shadow-[0_2px_15px_rgba(0,0,0,0.8)]"></div>
       `;
       
       marker.current = new mapboxgl.Marker({ 
