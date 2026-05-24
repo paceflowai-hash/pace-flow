@@ -62,6 +62,10 @@ export default function DrivePage() {
   // Real-time Traffic Density from Mapbox Spatial Calculation
   const [trafficDensity, setTrafficDensity] = useState(0);
 
+  // Derived Local Area Delay
+  const delayMinutes = Math.round(Math.pow(trafficDensity / 100, 2) * 20);
+  const delayPercentage = Math.max(2, (delayMinutes / 20) * 100);
+
   // ── Reverse Geocoding (Sokak İsmi) ──
   const [currentStreet, setCurrentStreet] = useState<string>('Konum Aranıyor...');
   const lastGeocodeRef = useRef<{lat: number, lng: number, time: number} | null>(null);
@@ -257,12 +261,33 @@ export default function DrivePage() {
               backgroundColor: trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158',
               boxShadow: `0 0 10px ${trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158'}`
             }}
-            animate={{ height: `${trafficDensity}%` }}
+            animate={{ height: `${Math.max(2, trafficDensity)}%` }}
             transition={{ duration: 1.5, ease: 'easeOut' }}
           />
         </div>
         <span className="text-[9px] text-white/40 uppercase tracking-[0.2em] [writing-mode:vertical-lr] rotate-180">
           Trafik Yoğunluğu
+        </span>
+      </div>
+
+      {/* Delay Bar (Right Vertical) */}
+      <div className="absolute right-6 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center pointer-events-none">
+        <span className="text-[10px] text-white/70 font-bold tabular-nums mb-2">
+          +{delayMinutes}dk
+        </span>
+        <div className="w-1.5 h-32 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-3">
+          <motion.div 
+            className="w-full rounded-full animate-pulse"
+            style={{ 
+              backgroundColor: delayMinutes > 10 ? '#FF453A' : delayMinutes > 3 ? '#FF9F0A' : '#30D158',
+              boxShadow: `0 0 10px ${delayMinutes > 10 ? '#FF453A' : delayMinutes > 3 ? '#FF9F0A' : '#30D158'}`
+            }}
+            animate={{ height: `${delayPercentage}%` }}
+            transition={{ duration: 1.5, ease: 'easeOut' }}
+          />
+        </div>
+        <span className="text-[9px] text-white/40 uppercase tracking-[0.2em] [writing-mode:vertical-lr] rotate-180">
+          Gecikme Süresi
         </span>
       </div>
 
