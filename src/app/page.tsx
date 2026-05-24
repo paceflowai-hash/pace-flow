@@ -60,18 +60,9 @@ export default function HomePage() {
           variant="primary"
           size="lg"
           fullWidth
-          onClick={() => router.push('/login')}
+          onClick={() => router.push('/drive')}
         >
-          Başla
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="md"
-          fullWidth
-          onClick={() => router.push('/login')}
-        >
-          Zaten hesabım var
+          Sürüşe Başla
         </Button>
       </motion.div>
 
