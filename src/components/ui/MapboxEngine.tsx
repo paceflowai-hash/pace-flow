@@ -47,7 +47,7 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
   const [mapLoaded, setMapLoaded] = useState(false);
   const mapLoadedRef = useRef(false);
   const animationFrameId = useRef<number | null>(null);
-  const activeRedBuildingsRef = useRef<Set<string | number>>(new Set());
+  const activeTrafficBuildingsRef = useRef<Map<string | number, string>>(new Map());
   // Initialize Map
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
@@ -135,10 +135,11 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
               minzoom: 14,
               paint: {
                 'fill-extrusion-color': [
-                  'case',
-                  ['boolean', ['feature-state', 'isTrafficRed'], false],
-                  '#8B0000', // Koyu kırmızımsı parlaklık
-                  '#0c0c0c'  // Varsayılan siyah
+                  'match',
+                  ['coalesce', ['feature-state', 'trafficLevel'], 'none'],
+                  'red', '#8B0000',    // Koyu Kırmızımsı Parlaklık (Heavy/Severe)
+                  'orange', '#995000', // Koyu Turuncu (Moderate)
+                  '#0c0c0c'            // Varsayılan Siyah
                 ],
                 'fill-extrusion-height': ['get', 'height'],
                 'fill-extrusion-base': ['get', 'min_height'],
@@ -446,7 +447,7 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
 
         let totalWeight = 0;
         let weightedCongestion = 0;
-        const newRedBuildings = new Set<string | number>();
+        const newTrafficBuildings = new Map<string | number, string>();
 
         features.forEach((f) => {
           const congestion = f.properties?.congestion;
@@ -473,8 +474,9 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
             return;
           }
 
-          // Kırmızı Binalar Mantığı: 30 Metre (ekranda yaklaşık 25 piksel) yakındaki binaları bul
-          if (congestion === 'heavy' || congestion === 'severe') {
+          // Binalar Mantığı: 30 Metre (ekranda yaklaşık 25 piksel) yakındaki binaları bul
+          if (congestion === 'moderate' || congestion === 'heavy' || congestion === 'severe') {
+            const level = (congestion === 'heavy' || congestion === 'severe') ? 'red' : 'orange';
             try {
               const processPoint = (coord: number[]) => {
                 if (!map.current) return;
@@ -486,7 +488,13 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
                 ] as [mapboxgl.PointLike, mapboxgl.PointLike];
                 const bldgs = map.current.queryRenderedFeatures(bbox, { layers: ['3d-buildings'] });
                 bldgs.forEach(b => {
-                  if (b.id !== undefined) newRedBuildings.add(b.id);
+                  if (b.id !== undefined) {
+                    // Eğer kırmızı bir caddeye yakınsa turuncu onu ezmesin
+                    const currentLevel = newTrafficBuildings.get(b.id);
+                    if (currentLevel !== 'red') {
+                      newTrafficBuildings.set(b.id, level);
+                    }
+                  }
                 });
               };
 
@@ -521,19 +529,20 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
 
         // Feature State güncellemeleri
         if (map.current) {
-          // Eski kırmızı binaları normale döndür
-          activeRedBuildingsRef.current.forEach(id => {
-            if (!newRedBuildings.has(id)) {
-              map.current!.setFeatureState({ source: 'composite', sourceLayer: 'building', id }, { isTrafficRed: false });
+          // Eski renkli binaları normale döndür
+          activeTrafficBuildingsRef.current.forEach((_, id) => {
+            if (!newTrafficBuildings.has(id)) {
+              map.current!.setFeatureState({ source: 'composite', sourceLayer: 'building', id }, { trafficLevel: 'none' });
             }
           });
-          // Yeni binaları kızart
-          newRedBuildings.forEach(id => {
-            if (!activeRedBuildingsRef.current.has(id)) {
-              map.current!.setFeatureState({ source: 'composite', sourceLayer: 'building', id }, { isTrafficRed: true });
+          // Yeni binaları uygun renge boya
+          newTrafficBuildings.forEach((level, id) => {
+            const oldLevel = activeTrafficBuildingsRef.current.get(id);
+            if (oldLevel !== level) {
+              map.current!.setFeatureState({ source: 'composite', sourceLayer: 'building', id }, { trafficLevel: level });
             }
           });
-          activeRedBuildingsRef.current = newRedBuildings;
+          activeTrafficBuildingsRef.current = newTrafficBuildings;
         }
 
       } catch (err) {
