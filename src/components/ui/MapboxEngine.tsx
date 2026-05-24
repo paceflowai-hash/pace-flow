@@ -484,16 +484,6 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
         const finalDensity = totalWeight > 0 ? Math.round(weightedCongestion / totalWeight) : 0;
         onTrafficDensityChange(finalDensity);
 
-        // --- CYBER-CITY DYNAMIC BUILDING COLOR ---
-        // Binaları yoğunluğa göre parlat (0 = siyah, 100 = parlak kırmızı/turuncu)
-        if (map.current?.getLayer('3d-buildings')) {
-          // Çok hafif bir kırmızı/turuncu tonlama yapıyoruz, çok parlak olmasın
-          const r = Math.round(12 + (finalDensity * 1.5)); 
-          const g = Math.round(12 + (finalDensity > 40 ? (100 - finalDensity) * 0.3 : finalDensity * 0.3));
-          const b = 12; // karanlık baz
-          map.current.setPaintProperty('3d-buildings', 'fill-extrusion-color', `rgb(${r}, ${g}, ${b})`);
-        }
-
       } catch (err) {
         console.error("Traffic calculation error:", err);
       }
