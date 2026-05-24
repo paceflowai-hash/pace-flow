@@ -343,8 +343,8 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
     // Pitch: 45 (stopped) to 75 (highway speeds)
     const targetPitch = 45 + Math.min(speed / 3, 30);
     
-    // Bearing: 0 (north) if stopped, align with heading if moving fast
-    const targetBearing = speed > 5 ? position.heading : map.current.getBearing();
+    // Bearing: Her zaman konumu takip et (dururken bile dönebilmesi için)
+    const targetBearing = position.heading;
 
     // Directional Marker Rotation (Google Maps Style)
     const markerRotation = position.heading - targetBearing;
@@ -354,8 +354,8 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
       zoom: targetZoom,
       pitch: targetPitch,
       bearing: targetBearing,
-      duration: 1000,
-      easing: (t) => t * (2 - t),
+      duration: 100, // Milisaniyelik anlık tepki (Çok hızlı)
+      easing: (t) => t, // Linear easing for zero perceived latency
     });
 
     // Update Main Marker
