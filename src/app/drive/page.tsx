@@ -228,7 +228,7 @@ export default function DrivePage() {
           >
             <div className="w-1.5 h-1.5 rounded-full bg-white/50 animate-pulse" />
             <span className="text-[11px] text-white/80 uppercase tracking-[0.25em] font-medium">
-              Ağ Bekleniyor
+              Hedef Hesaplanıyor
             </span>
           </motion.div>
         ) : (
