@@ -87,13 +87,11 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
                   // Çerçeveleri gizle (çift çizgi karmaşasını önler)
                   map.current.setPaintProperty(layer.id, 'line-opacity', 0);
                 } else {
-                  // Sadece yolun içini (tek çizgi) beyaz yap
+                  // Yolların içini (tek çizgi) beyaz yapıp görünürlüğünü artırıyoruz
                   map.current.setPaintProperty(layer.id, 'line-color', '#FFFFFF'); // Saf beyaz
-                  map.current.setPaintProperty(layer.id, 'line-opacity', 0.4); // Beyaz çok parlak olacağı için opacity'yi kıstık
-                  try {
-                    // Çizgiyi biraz daha kalınlaştır (kullanıcı talebi)
-                    map.current.setPaintProperty(layer.id, 'line-width', 2.5); 
-                  } catch (e) {}
+                  map.current.setPaintProperty(layer.id, 'line-opacity', 0.8); // Çok daha belirgin
+                  // line-width değerine KARIŞMIYORUZ. 
+                  // Böylece otobanlar kalın, sokaklar ince kalmaya devam eder (hiyerarşi anlaşılır olur).
                 }
               }
             } catch (e) {
