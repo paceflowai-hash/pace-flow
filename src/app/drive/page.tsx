@@ -242,6 +242,27 @@ export default function DrivePage() {
         </div>
       </div>
 
+      {/* Traffic Density Bar (Top Area) */}
+      <div className="absolute top-14 left-0 right-0 z-30 px-6 py-2 flex flex-col items-center pointer-events-none">
+        <div className="w-full max-w-[240px]">
+          <div className="flex justify-between items-center mb-1.5 px-1">
+            <span className="text-[9px] text-white/40 uppercase tracking-[0.2em]">Trafik Yoğunluğu</span>
+            <span className="text-[10px] text-white/70 font-bold tabular-nums">{Math.round(trafficDensity)}%</span>
+          </div>
+          <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
+            <motion.div 
+              className="h-full rounded-full animate-pulse"
+              style={{ 
+                backgroundColor: trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158',
+                boxShadow: `0 0 10px ${trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158'}`
+              }}
+              animate={{ width: `${trafficDensity}%` }}
+              transition={{ duration: 1.5, ease: 'easeOut' }}
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Shock Wave Alert Banner */}
       <AnimatePresence>
         {showShockAlert && (
@@ -326,25 +347,6 @@ export default function DrivePage() {
       {/* Bottom Info Bar */}
       <div className="absolute bottom-0 left-0 right-0 z-30 px-6 py-8 flex flex-col items-center">
         
-        {/* Traffic Density Bar (Apple Style) */}
-        <div className="w-full max-w-[240px] mb-5">
-          <div className="flex justify-between items-center mb-1.5 px-1">
-            <span className="text-[9px] text-white/40 uppercase tracking-[0.2em]">Trafik Yoğunluğu</span>
-            <span className="text-[10px] text-white/70 font-bold tabular-nums">{Math.round(trafficDensity)}%</span>
-          </div>
-          <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
-            <motion.div 
-              className="h-full rounded-full animate-pulse"
-              style={{ 
-                backgroundColor: trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158',
-                boxShadow: `0 0 10px ${trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158'}`
-              }}
-              animate={{ width: `${trafficDensity}%` }}
-              transition={{ duration: 1.5, ease: 'easeOut' }}
-            />
-          </div>
-        </div>
-
         {/* Network Count */}
         <div className="flex items-center justify-center gap-2 mb-3">
           <div className="w-1.5 h-1.5 rounded-full bg-white/30" />
