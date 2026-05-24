@@ -300,7 +300,7 @@ export default function DrivePage() {
           
           {/* Local Area */}
         <div className="flex flex-col items-center">
-          <span className="text-[10px] text-white/70 font-bold tabular-nums mb-2">
+          <span className="text-xs font-extrabold text-white/90 tabular-nums mb-2">
             {Math.round(trafficDensity)}%
           </span>
           <div className="w-1.5 h-28 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-3">
@@ -321,7 +321,7 @@ export default function DrivePage() {
 
         {/* District */}
         <div className="flex flex-col items-center">
-          <span className="text-[9px] text-white/60 font-bold tabular-nums mb-1.5">{Math.round(districtDensity)}%</span>
+          <span className="text-[11px] font-extrabold text-white/80 tabular-nums mb-1.5">{Math.round(districtDensity)}%</span>
           <div className="w-1.5 h-20 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-2">
             <motion.div 
               className="w-full rounded-full"
@@ -335,7 +335,7 @@ export default function DrivePage() {
 
         {/* City */}
         <div className="flex flex-col items-center">
-          <span className="text-[8px] text-white/50 font-bold tabular-nums mb-1">{Math.round(cityDensity)}%</span>
+          <span className="text-[10px] font-extrabold text-white/70 tabular-nums mb-1">{Math.round(cityDensity)}%</span>
           <div className="w-1 h-16 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-2">
             <motion.div 
               className="w-full rounded-full"
@@ -358,7 +358,7 @@ export default function DrivePage() {
           
           {/* Local Delay */}
         <div className="flex flex-col items-center">
-          <span className="text-[10px] text-white/70 font-bold tabular-nums mb-2">+{delayMinutes}dk</span>
+          <span className="text-xs font-extrabold text-white/90 tabular-nums mb-2">+{delayMinutes}dk</span>
           <div className="w-1.5 h-28 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-3">
             <motion.div 
               className="w-full rounded-full animate-pulse"
@@ -375,7 +375,7 @@ export default function DrivePage() {
 
         {/* District Delay */}
         <div className="flex flex-col items-center">
-          <span className="text-[9px] text-white/60 font-bold tabular-nums mb-1.5">+{districtDelayMinutes}dk</span>
+          <span className="text-[11px] font-extrabold text-white/80 tabular-nums mb-1.5">+{districtDelayMinutes}dk</span>
           <div className="w-1.5 h-20 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-2">
             <motion.div 
               className="w-full rounded-full"
@@ -389,7 +389,7 @@ export default function DrivePage() {
 
         {/* City Delay */}
         <div className="flex flex-col items-center">
-          <span className="text-[8px] text-white/50 font-bold tabular-nums mb-1">+{cityDelayMinutes}dk</span>
+          <span className="text-[10px] font-extrabold text-white/70 tabular-nums mb-1">+{cityDelayMinutes}dk</span>
           <div className="w-1 h-16 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-2">
             <motion.div 
               className="w-full rounded-full"
