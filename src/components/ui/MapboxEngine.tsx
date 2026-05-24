@@ -65,6 +65,7 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
   const [mapLoaded, setMapLoaded] = useState(false);
   const mapLoadedRef = useRef(false);
   const animationFrameId = useRef<number | null>(null);
+  const stopTimeRef = useRef<number | null>(null);
   // Initialize Map
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
@@ -304,13 +305,32 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
 
     const speed = position.speed_kmh;
     
+    // Ambient Overview Cycle when Stopped (Traffic Awareness)
+    if (speed < 3) {
+      if (!stopTimeRef.current) stopTimeRef.current = Date.now();
+    } else {
+      stopTimeRef.current = null;
+    }
+
+    const stoppedDurationMs = stopTimeRef.current ? Date.now() - stopTimeRef.current : 0;
+    const cycleMs = stoppedDurationMs > 0 ? stoppedDurationMs % 14000 : 0;
+    
+    let ambientZoomOffset = 0;
+    let ambientPitchOffset = 0;
+
+    // After 8 seconds of stopping, trigger a 6-second smooth zoom-out overview cycle
+    if (stoppedDurationMs > 8000 && cycleMs > 8000) {
+      const pulseT = (cycleMs - 8000) / 6000; // 0.0 to 1.0
+      const pulseEased = Math.sin(pulseT * Math.PI); // 0 -> 1 -> 0
+      ambientZoomOffset = pulseEased * 3.5; // Zoom out by 3.5 levels (e.g. 18 -> 14.5)
+      ambientPitchOffset = pulseEased * 30; // Pitch down by 30 (e.g. 40 -> 10)
+    }
+
     // Apple Maps Style Dynamic Camera
-    // 0 km/h: Zoom 18 (Çok Yakın), Pitch 40 (Üstten Bakış)
-    // 120 km/h: Zoom 14.5 (Geniş Açı), Pitch 65 (İleriyi Gösteren Ufuk Çizgisi)
     const normalizedSpeed = Math.min(speed / 120, 1); // 0.0 to 1.0
     
-    const targetZoom = 18 - (normalizedSpeed * 3.5);
-    const targetPitch = 40 + (normalizedSpeed * 25);
+    const targetZoom = 18 - (normalizedSpeed * 3.5) - ambientZoomOffset;
+    const targetPitch = 40 + (normalizedSpeed * 25) - ambientPitchOffset;
     
     // Bearing: Her zaman konumu takip et (dururken bile dönebilmesi için)
     const targetBearing = position.heading;
@@ -318,12 +338,15 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
     // Directional Marker Rotation (Google Maps Style)
     const markerRotation = position.heading - targetBearing;
     
+    // Yavaş ve smooth geçiş için duration'u ayarla
+    const camDuration = ambientZoomOffset > 0 ? 1000 : 100;
+    
     map.current.easeTo({
       center: [position.longitude, position.latitude],
       zoom: targetZoom,
       pitch: targetPitch,
       bearing: targetBearing,
-      duration: 100, // Milisaniyelik anlık tepki (Çok hızlı)
+      duration: camDuration,
       easing: (t) => t, // Linear easing for zero perceived latency
     });
 
