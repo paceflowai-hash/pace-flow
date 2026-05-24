@@ -61,6 +61,32 @@ export default function DrivePage() {
   
   // Real-time Traffic Density from Mapbox Spatial Calculation
   const [trafficDensity, setTrafficDensity] = useState(0);
+  const [districtDensity, setDistrictDensity] = useState(0);
+  const [cityDensity, setCityDensity] = useState(0);
+
+  // ── Regional Density Simulation (Phase 3) ──
+  useEffect(() => {
+    // Calculate City Density based on Time of Day (predictive modeling)
+    const hour = new Date().getHours();
+    let baseCity = 20; 
+    if (hour >= 7 && hour <= 10) baseCity = 85; // Morning rush
+    else if (hour > 10 && hour <= 15) baseCity = 55; // Midday
+    else if (hour > 15 && hour <= 20) baseCity = 90; // Evening rush
+    else if (hour > 20 && hour <= 23) baseCity = 40; // Night
+
+    // Add macro-level noise
+    const currentCity = baseCity + (Math.sin(Date.now() / 50000) * 15);
+    setCityDensity(Math.max(5, Math.min(95, currentCity)));
+
+    // District is a weighted blend of Local Traffic and City Traffic
+    const targetDistrict = (trafficDensity * 0.5) + (currentCity * 0.5);
+    
+    // Add momentum to District density for realism
+    setDistrictDensity(prev => {
+      const diff = targetDistrict - prev;
+      return prev + (diff * 0.15); 
+    });
+  }, [trafficDensity]);
 
   // Derived Local Area Delay
   const delayMinutes = Math.round(Math.pow(trafficDensity / 100, 2) * 20);
@@ -249,25 +275,73 @@ export default function DrivePage() {
         </div>
       </div>
 
-      {/* Traffic Density Bar (Left Vertical) */}
-      <div className="absolute left-6 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center pointer-events-none">
-        <span className="text-[10px] text-white/70 font-bold tabular-nums mb-2">
-          {Math.round(trafficDensity)}%
-        </span>
-        <div className="w-1.5 h-32 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-3">
-          <motion.div 
-            className="w-full rounded-full animate-pulse"
-            style={{ 
-              backgroundColor: trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158',
-              boxShadow: `0 0 10px ${trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158'}`
-            }}
-            animate={{ height: `${Math.max(2, trafficDensity)}%` }}
-            transition={{ duration: 1.5, ease: 'easeOut' }}
-          />
+      {/* Traffic Density Cluster (Left Vertical) */}
+      <div className="absolute left-6 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center pointer-events-none gap-4">
+        
+        {/* Local Area */}
+        <div className="flex flex-col items-center">
+          <span className="text-[10px] text-white/70 font-bold tabular-nums mb-2">
+            {Math.round(trafficDensity)}%
+          </span>
+          <div className="w-1.5 h-28 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-3">
+            <motion.div 
+              className="w-full rounded-full animate-pulse"
+              style={{ 
+                backgroundColor: trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158',
+                boxShadow: `0 0 10px ${trafficDensity > 70 ? '#FF453A' : trafficDensity > 40 ? '#FF9F0A' : '#30D158'}`
+              }}
+              animate={{ height: `${Math.max(2, trafficDensity)}%` }}
+              transition={{ duration: 1.5, ease: 'easeOut' }}
+            />
+          </div>
+          <span className="text-[9px] text-white/40 uppercase tracking-[0.2em] [writing-mode:vertical-lr] rotate-180">
+            Yakın Bölge
+          </span>
         </div>
-        <span className="text-[9px] text-white/40 uppercase tracking-[0.2em] [writing-mode:vertical-lr] rotate-180">
-          Trafik Yoğunluğu
-        </span>
+
+        {/* District & City Cluster */}
+        <div className="flex gap-2.5 items-end">
+          {/* District */}
+          <div className="flex flex-col items-center">
+            <span className="text-[8px] text-white/60 font-bold tabular-nums mb-1.5">
+              {Math.round(districtDensity)}%
+            </span>
+            <div className="w-1 h-16 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-2">
+              <motion.div 
+                className="w-full rounded-full"
+                style={{ 
+                  backgroundColor: districtDensity > 70 ? '#FF453A' : districtDensity > 40 ? '#FF9F0A' : '#30D158'
+                }}
+                animate={{ height: `${Math.max(2, districtDensity)}%` }}
+                transition={{ duration: 2, ease: 'easeOut' }}
+              />
+            </div>
+            <span className="text-[7px] text-white/30 uppercase tracking-[0.2em] [writing-mode:vertical-lr] rotate-180">
+              İlçe
+            </span>
+          </div>
+
+          {/* City */}
+          <div className="flex flex-col items-center">
+            <span className="text-[8px] text-white/60 font-bold tabular-nums mb-1.5">
+              {Math.round(cityDensity)}%
+            </span>
+            <div className="w-1 h-12 bg-white/10 rounded-full overflow-hidden flex flex-col justify-end mb-2">
+              <motion.div 
+                className="w-full rounded-full"
+                style={{ 
+                  backgroundColor: cityDensity > 70 ? '#FF453A' : cityDensity > 40 ? '#FF9F0A' : '#30D158'
+                }}
+                animate={{ height: `${Math.max(2, cityDensity)}%` }}
+                transition={{ duration: 3, ease: 'easeOut' }}
+              />
+            </div>
+            <span className="text-[7px] text-white/30 uppercase tracking-[0.2em] [writing-mode:vertical-lr] rotate-180">
+              İl
+            </span>
+          </div>
+        </div>
+
       </div>
 
       {/* Delay Bar (Right Vertical) */}
