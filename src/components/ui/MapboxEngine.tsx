@@ -143,7 +143,7 @@ export function MapboxEngine({ position, targetSpeed = 0, currentSpeed = 0, show
                 ],
                 'fill-extrusion-height': ['get', 'height'],
                 'fill-extrusion-base': ['get', 'min_height'],
-                'fill-extrusion-opacity': 0.8,
+                'fill-extrusion-opacity': 0.5,
               },
             },
             'waterway-label' // insert beneath labels to keep them readable
