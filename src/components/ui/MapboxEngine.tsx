@@ -110,7 +110,7 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
                 'line-color': [
                   'match',
                   ['get', 'congestion'],
-                  'low', '#30D158',
+                  'low', '#000000',
                   'moderate', '#FF9F0A',
                   'heavy', '#FF453A',
                   'severe', '#BF5AF2',
@@ -119,7 +119,7 @@ export function MapboxEngine({ position, onTrafficDensityChange }: MapboxEngineP
                 'line-opacity': [
                   'match',
                   ['get', 'congestion'],
-                  'low', 0.2, // Neredeyse görünmez / koyu arka plana karışır
+                  'low', 0.8, // Siyah yolların belirgin olması için
                   0.9 // Diğerleri parlak
                 ],
               },
